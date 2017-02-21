@@ -49,9 +49,9 @@ class Stack {
   * bit 0- invalid data pointer;
   * bit 1- capacity<size;
   * bit 2- capacity<=0;
-  * bit 3- wrong magic;
+  * bit 3- wrong checksum2;
   * bit 4- wrong checksum;
-  * 
+  * bit 5- wrong magic;
   */
 	private:
 		double* data_;
@@ -59,8 +59,9 @@ class Stack {
 		int size_;
 		int verifyPointer(void* p);	//returns 1 if pointer is correct.
 		int magic_;
-		int checksum_;
-		unsigned char calculateMagic();
+		unsigned char checksum_;
+		unsigned char checksum2_;
+		unsigned char calculateChecksum2();
 		unsigned char calculateChecksum();
 		int parity(int* data, unsigned int n);
 		int parity(double** data, unsigned int n);
@@ -68,7 +69,8 @@ class Stack {
 };
 Stack::Stack(int capacity):
 capacity_(capacity),
-size_(0)
+size_(0),
+magic_(564323)
 {
 	data_ = (double*)calloc(capacity, sizeof(double));
 	update();
@@ -136,7 +138,7 @@ int Stack::parity(double** data, unsigned int n){
 	return tmp%n;
 	
 }
-unsigned char Stack::calculateMagic(){
+unsigned char Stack::calculateChecksum2(){
 	unsigned char tmp=0;
 	tmp+=parity(&data_, 4);
 	tmp+=parity(&capacity_, 4)<<2;
@@ -154,12 +156,12 @@ unsigned char Stack::calculateChecksum(){
 unsigned char Stack::Broken(){
 	char f=0;
 	f=(f+!verifyPointer(data_)+(capacity_<size_)*2+(capacity_<=0)*4);
-	f=(f+(magic_!=calculateMagic())*8+(checksum_!=calculateChecksum())*16);
+	f=(f+(checksum2_!=calculateChecksum2())*8+(checksum_!=calculateChecksum())*16+(magic_!=564323)*32);
 	return f;
 }
 void Stack::update(){
 	checksum_=calculateChecksum();
-	magic_=calculateMagic();
+	checksum2_=calculateChecksum2();
 }
 //#################################################################################################################################
 
@@ -210,7 +212,7 @@ void testStack(Stack* stack){			//simple test for a stack object
 		checkError(stack->Pop(&j));
 		cout << j << endl;
 	}
-	checkError(stack->Push(4532.12));
+	checkError(stack->Push(5643.23));
 	//checkError(stack->Pop((double*)0x00));
 }
 int main(int argc, char **argv)
@@ -219,7 +221,7 @@ int main(int argc, char **argv)
 	Stack stack(30);
 	testStack(&stack);
 	cout << "CHECK " << (int)stack.Broken() << endl;
-	for (i=2; i<6; i++) (&a)[i]=1234;
+	for (i=2; i<8; i++) (&a)[i]=1234;
 	cout << "CHECK " << (int)stack.Broken() << endl;
 	testStack(&stack);
 	
