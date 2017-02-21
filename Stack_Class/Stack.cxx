@@ -27,46 +27,71 @@
 using namespace std;
 class Stack {
 	public:
-		int Push(double value);		//Push 'value' to the top of the stack
-		int Pop(double* location);	//Pop an element from the top of the stack and write it to 'location'
-		int Empty();				//Empty stack (does not clear nor reset memory)
+		unsigned char Broken();				//Check integrity. Returns unsigned char.
+		unsigned char Push(double value);		//Push 'value' to the top of the stack
+		unsigned char Pop(double* location);	//Pop an element from the top of the stack and write it to 'location'
+		unsigned char Empty();				//Empty stack (does not clear nor reset memory)
 		int getSize();				//Returns current stack size
 		int getCapacity();			//Returns stack capacity
 		Stack(int capacity);		//Constructor. Allocates memory. 'capacity' is the maximum number of elements
 		~Stack();					//Destructor. Frees memory.
 /*
- * All functions (except those with get- prefix)
+ * All functions (except those with get- prefix and Broken)
  * return an error code.
  * Possible return codes:
  * 0- Completed successfully
  * 1- Current stack size does not allow such operation
  * 2- Null pointer supplied
+ * 3- Corrupted stack
  */
+ 
+ /* Broken returns an unsigned char where (lsb first):
+  * bit 0- invalid data pointer;
+  * bit 1- capacity<size;
+  * bit 2- capacity<=0;
+  * bit 3- wrong magic;
+  * bit 4- wrong checksum;
+  * 
+  */
 	private:
 		double* data_;
 		int capacity_;
 		int size_;
+		int verifyPointer(void* p);	//returns 1 if pointer is correct.
+		int magic_;
+		int checksum_;
+		unsigned char calculateMagic();
+		unsigned char calculateChecksum();
+		int parity(int* data, unsigned int n);
+		int parity(double** data, unsigned int n);
+		void update();
 };
 Stack::Stack(int capacity):
-data_(new double[capacity]),
 capacity_(capacity),
 size_(0)
 {
-	//data_ = (double*)calloc(capacity, sizeof(double));
+	data_ = (double*)calloc(capacity, sizeof(double));
+	update();
 }
-int Stack::Push(double value){
+unsigned char Stack::Push(double value){
+	if(!Broken()){
 	if (size_<capacity_){
 		data_[size_++]=value;
+		update();
 		return 0;
 	}
 	else{
 		return 1;
 	}	
 }
-int Stack::Pop(double* location){
+return 3;
+}
+unsigned char Stack::Pop(double* location){
+	if(!Broken()){
 	if (capacity_>0){
-		if(location){
+		if(verifyPointer(location)){
 			*location=data_[--size_];
+			update();
 			return 0;
 		}else{
 			return 2;
@@ -76,9 +101,15 @@ int Stack::Pop(double* location){
 		return 1;
 	}
 }
-int Stack::Empty(){
+return 3;
+}
+unsigned char Stack::Empty(){
+	if(!Broken()){
 	size_=0;
+	update();
 	return 0;
+}
+	return 3;
 }
 int Stack::getSize(){
 	return size_;
@@ -90,7 +121,46 @@ Stack::~Stack(){
 	free(data_);
 	
 }
-
+int Stack::verifyPointer(void* p){
+	int f;
+	f=(p==NULL); //verify that pointer is not null
+	return !f;
+}
+int Stack::parity(int* data, unsigned int n){
+	return *data%n;
+}
+int Stack::parity(double** data, unsigned int n){
+	unsigned int i, tmp=0;
+	for (i=0; i<=sizeof(double*); i++)
+	tmp+=((char*)data)[i]%n;
+	return tmp%n;
+	
+}
+unsigned char Stack::calculateMagic(){
+	unsigned char tmp=0;
+	tmp+=parity(&data_, 4);
+	tmp+=parity(&capacity_, 4)<<2;
+	tmp+=parity(&size_, 4)<<4;
+	return tmp;
+}
+unsigned char Stack::calculateChecksum(){
+	unsigned int tmp=0;
+	tmp+= parity(&data_, 256);
+	tmp+= parity(&capacity_, 256);
+	tmp+= parity(&size_, 256);
+	return (unsigned char) tmp % 256;
+	
+}
+unsigned char Stack::Broken(){
+	char f=0;
+	f=(f+!verifyPointer(data_)+(capacity_<size_)*2+(capacity_<=0)*4);
+	f=(f+(magic_!=calculateMagic())*8+(checksum_!=calculateChecksum())*16);
+	return f;
+}
+void Stack::update(){
+	checksum_=calculateChecksum();
+	magic_=calculateMagic();
+}
 //#################################################################################################################################
 
 
@@ -112,7 +182,10 @@ void checkError(int errcode){	//interprets error codes
 			cerr<<"Null pointer supplied."<<endl;
 			sysexit();
 			break;
-	
+		case 3:
+			cerr<<"Corrupted stack."<<endl;
+			sysexit();
+			break;
 		default:
 			cerr<<"Unknown error."<<endl;
 			sysexit();
@@ -138,12 +211,18 @@ void testStack(Stack* stack){			//simple test for a stack object
 		cout << j << endl;
 	}
 	checkError(stack->Push(4532.12));
-	checkError(stack->Pop((double*)0x00));
+	//checkError(stack->Pop((double*)0x00));
 }
 int main(int argc, char **argv)
 {
+	int a, i;
 	Stack stack(30);
 	testStack(&stack);
+	cout << "CHECK " << (int)stack.Broken() << endl;
+	for (i=2; i<6; i++) (&a)[i]=1234;
+	cout << "CHECK " << (int)stack.Broken() << endl;
+	testStack(&stack);
+	
 	return 0;
 }
 
