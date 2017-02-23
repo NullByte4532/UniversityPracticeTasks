@@ -24,9 +24,11 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 using namespace std;
 class Stack {
 	public:
+		void dump(FILE* f);					//Dump Stack data to file 'f'
 		unsigned char Broken();				//Check integrity. Returns unsigned char.
 		unsigned char Push(double value);		//Push 'value' to the top of the stack
 		unsigned char Pop(double* location);	//Pop an element from the top of the stack and write it to 'location'
@@ -57,10 +59,11 @@ class Stack {
 		double* data_;
 		int capacity_;
 		int size_;
-		int verifyPointer(void* p);	//returns 1 if pointer is correct.
 		int magic_;
 		unsigned char checksum_;
 		unsigned char checksum2_;
+		//======================
+		int verifyPointer(void* p);	//returns 1 if pointer is correct.
 		unsigned char calculateChecksum2();
 		unsigned char calculateChecksum();
 		int parity(int* data, unsigned int n);
@@ -87,6 +90,24 @@ unsigned char Stack::Push(double value){
 	}	
 }
 return 3;
+}
+void Stack::dump(FILE* f){
+	unsigned char error;
+	error=Broken();
+	fprintf(f, "Stack object at <%p>:\n", this);
+	fprintf(f, "\t valid:\t");
+	if(error){
+		fprintf(f, "[error %d]\n", error);
+	}else{
+		fprintf(f, "[ok]\n");
+	}
+	fprintf(f, "\t Data pointer:\t<%p>\n", data_);
+	fprintf(f, "\t Capacity:\t%d\n", capacity_);
+	fprintf(f, "\t Size:\t\t%d\n", size_);
+	fprintf(f, "\t Magic:\t\t%d\n", magic_);
+	fprintf(f, "\t Checksum:\t%x\n", checksum_);
+	fprintf(f, "\t Checksum2:\t%x\n", checksum2_);
+	
 }
 unsigned char Stack::Pop(double* location){
 	if(!Broken()){
@@ -220,10 +241,11 @@ int main(int argc, char **argv)
 	int a, i;
 	Stack stack(30);
 	testStack(&stack);
-	cout << "CHECK " << (int)stack.Broken() << endl;
+	stack.dump(stdout);
 	for (i=2; i<8; i++) (&a)[i]=1234;
-	cout << "CHECK " << (int)stack.Broken() << endl;
+	stack.dump(stdout);
 	testStack(&stack);
+	stack.dump(stdout);
 	
 	return 0;
 }
