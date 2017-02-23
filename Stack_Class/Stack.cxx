@@ -105,8 +105,8 @@ void Stack::dump(FILE* f){
 	fprintf(f, "\t Capacity:\t%d\n", capacity_);
 	fprintf(f, "\t Size:\t\t%d\n", size_);
 	fprintf(f, "\t Magic:\t\t%d\n", magic_);
-	fprintf(f, "\t Checksum:\t%x\n", checksum_);
-	fprintf(f, "\t Checksum2:\t%x\n", checksum2_);
+	fprintf(f, "\t Checksum:\t%02x\n", checksum_);
+	fprintf(f, "\t Checksum2:\t%02x\n", checksum2_);
 	
 }
 unsigned char Stack::Pop(double* location){
