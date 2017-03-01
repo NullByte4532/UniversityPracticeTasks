@@ -48,7 +48,7 @@ int process_arg(FILE* fin, FILE* fout){
 		if(isdigit(ch)){
 			if(f==2){
 				f=3;
-			}else{ 
+			}else if(f==0){ 
 				f=1;
 			}
 		}else if(ch=='.'){
@@ -60,7 +60,7 @@ int process_arg(FILE* fin, FILE* fout){
 				f=4;
 			}
 		}else{
-			f=0;
+			f=4;
 		}
 		ch=fgetc(fin);
 		
