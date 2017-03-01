@@ -37,10 +37,9 @@ int process_arg(FILE* fin, FILE* fout){
 	arg=(char*)calloc(ARG_MAX_LENGTH, sizeof(char)); 
 	int i=0;
 	ch=fgetc(fin);
-	short int val;
-	int ival;
+	int val;
 	double dval;
-	int f=1;
+	int f=0;
     while (ch && !isspace(ch) && ch!=0xffffffff) {
 		if (i>=ARG_MAX_LENGTH){
 			fprintf(stderr, "ERROR: Too long argument starting with %s\n", arg); return 0;
@@ -55,8 +54,10 @@ int process_arg(FILE* fin, FILE* fout){
 		}else if(ch=='.'){
 			if(f==2||f==3){
 				f=4;
-			}else{ 
+			}else if(f==1){ 
 				f=2;
+			}else{
+				f=4;
 			}
 		}else{
 			f=0;
@@ -68,13 +69,19 @@ int process_arg(FILE* fin, FILE* fout){
 		fprintf(stderr, "ERROR: Too short argument starting with %s\n", arg); return 0;
 	}
 	if 		(f==3)				{write_file(fout, N_CODE); sscanf(arg,"%lf", &dval); fwrite(&dval, sizeof(double), 1, fout); return 1;}
-	if 		(f==1)				{write_file(fout, NI_CODE); sscanf(arg,"%d", &ival); fwrite(&ival, sizeof(int), 1, fout); return 1;}
-	else if	(!strcmp(arg, "EAX")){write_file(fout, R_CODE); write_file(fout, R_EAX); return 1;}
-	else if	(!strcmp(arg, "EBX")){write_file(fout, R_CODE); write_file(fout, R_EBX); return 1;}
-	else if	(!strcmp(arg, "ECX")){write_file(fout, R_CODE); write_file(fout, R_ECX); return 1;}
-	else if	(!strcmp(arg, "EIP")){write_file(fout, R_CODE); write_file(fout, R_EIP); return 1;}
-	else if	(!strcmp(arg, "IO")){write_file(fout, R_CODE); write_file(fout, R_IO); return 1;}
-	else if	(arg[0]=='h'){write_file(fout, A_CODE);sscanf(&arg[1],"%hd", &val); write_file(fout, (char)val); return 1;}
+	if 		(f==1)				{write_file(fout, NI_CODE); sscanf(arg,"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
+	else if	(!strcmp(arg, "eax")){write_file(fout, R_CODE); write_file(fout, R_EAX); return 1;}
+	else if	(!strcmp(arg, "ebx")){write_file(fout, R_CODE); write_file(fout, R_EBX); return 1;}
+	else if	(!strcmp(arg, "ecx")){write_file(fout, R_CODE); write_file(fout, R_ECX); return 1;}
+	else if	(!strcmp(arg, "eip")){write_file(fout, R_CODE); write_file(fout, R_EIP); return 1;}
+	else if	(!strcmp(arg, "io")){write_file(fout, R_CODE); write_file(fout, R_IO); return 1;}
+	else if	(!strcmp(arg, "EAX")){write_file(fout, RI_CODE); write_file(fout, R_EAX); return 1;}
+	else if	(!strcmp(arg, "EBX")){write_file(fout, RI_CODE); write_file(fout, R_EBX); return 1;}
+	else if	(!strcmp(arg, "ECX")){write_file(fout, RI_CODE); write_file(fout, R_ECX); return 1;}
+	else if	(!strcmp(arg, "EIP")){write_file(fout, RI_CODE); write_file(fout, R_EIP); return 1;}
+	else if	(!strcmp(arg, "IO")){write_file(fout, RI_CODE); write_file(fout, R_IO); return 1;}
+	else if	(arg[0]=='h'){write_file(fout, A_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
+	else if	(arg[0]=='H'){write_file(fout, AI_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
 	else if (!strcmp(arg, "")){fprintf(stderr, "ERROR: Missing argument\n"); return 0;}
 	else                      {fprintf(stderr, "ERROR: Unknown argument %s\n", arg); return 0;}
 	
@@ -122,7 +129,10 @@ int main(int argc, char **argv)
 	char* fout_name;
 	FILE* fin;
 	FILE* fout;
+	int test_d=8;
+	int test_i=2;
 	int f=1;
+	printf("%d\n", test_d<<test_i);
 	fout_name="out.bin";
 	switch(argc-1){
 		case 1:

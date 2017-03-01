@@ -30,6 +30,9 @@
 #define N_CODE		0x02
 #define A_CODE		0x03
 #define NI_CODE		0x04
+#define AI_CODE		0x05
+#define RI_CODE		0x06
 
 #define ADDR_PREFIX 'h'
+#define ADDR_I_PREFIX 'H'
 #endif
