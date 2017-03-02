@@ -376,18 +376,12 @@ void cpu::op_hlt(){
 }
 
 void cpu::op_call(){
-	checkError(callstack.Push(eax.d));
-	checkError(callstack.Push(ebx.d));
-	checkError(callstack.Push(ecx.d));
 	checkError(callstack.Push(eip.d));
 	op_jmp();
 }
 
 void cpu::op_ret(){
 	checkError(callstack.Pop(&eip.d));
-	checkError(callstack.Pop(&ecx.d));
-	checkError(callstack.Pop(&ebx.d));
-	checkError(callstack.Pop(&eax.d));
 }
 void cpu::clock(){
 	char opcode;
