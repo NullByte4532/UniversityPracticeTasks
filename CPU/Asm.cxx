@@ -70,15 +70,15 @@ int process_arg(FILE* fin, FILE* fout){
 	}
 	if 		(f==3)				{write_file(fout, N_CODE); sscanf(arg,"%lf", &dval); fwrite(&dval, sizeof(double), 1, fout); return 1;}
 	if 		(f==1)				{write_file(fout, NI_CODE); sscanf(arg,"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
-	else if	(!strcmp(arg, "eax")){write_file(fout, R_CODE); write_file(fout, R_EAX); return 1;}
-	else if	(!strcmp(arg, "ebx")){write_file(fout, R_CODE); write_file(fout, R_EBX); return 1;}
-	else if	(!strcmp(arg, "ecx")){write_file(fout, R_CODE); write_file(fout, R_ECX); return 1;}
-	else if	(!strcmp(arg, "eip")){write_file(fout, R_CODE); write_file(fout, R_EIP); return 1;}
-	else if	(!strcmp(arg, "io")){write_file(fout, R_CODE); write_file(fout, R_IO); return 1;}
-	else if	(!strcmp(arg, "EAX")){write_file(fout, RI_CODE); write_file(fout, R_EAX); return 1;}
-	else if	(!strcmp(arg, "EBX")){write_file(fout, RI_CODE); write_file(fout, R_EBX); return 1;}
-	else if	(!strcmp(arg, "ECX")){write_file(fout, RI_CODE); write_file(fout, R_ECX); return 1;}
-	else if	(!strcmp(arg, "EIP")){write_file(fout, RI_CODE); write_file(fout, R_EIP); return 1;}
+	else if	(!strcmp(arg, "EAX")){write_file(fout, R_CODE); write_file(fout, R_EAX); return 1;}
+	else if	(!strcmp(arg, "EBX")){write_file(fout, R_CODE); write_file(fout, R_EBX); return 1;}
+	else if	(!strcmp(arg, "ECX")){write_file(fout, R_CODE); write_file(fout, R_ECX); return 1;}
+	else if	(!strcmp(arg, "EIP")){write_file(fout, R_CODE); write_file(fout, R_EIP); return 1;}
+	else if	(!strcmp(arg, "EIO")){write_file(fout, R_CODE); write_file(fout, R_IO); return 1;}
+	else if	(!strcmp(arg, "AX")){write_file(fout, RI_CODE); write_file(fout, R_EAX); return 1;}
+	else if	(!strcmp(arg, "BX")){write_file(fout, RI_CODE); write_file(fout, R_EBX); return 1;}
+	else if	(!strcmp(arg, "CX")){write_file(fout, RI_CODE); write_file(fout, R_ECX); return 1;}
+	else if	(!strcmp(arg, "IP")){write_file(fout, RI_CODE); write_file(fout, R_EIP); return 1;}
 	else if	(!strcmp(arg, "IO")){write_file(fout, RI_CODE); write_file(fout, R_IO); return 1;}
 	else if	(arg[0]=='h'){write_file(fout, A_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
 	else if	(arg[0]=='H'){write_file(fout, AI_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
