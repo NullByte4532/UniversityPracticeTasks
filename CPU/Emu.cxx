@@ -1,5 +1,5 @@
 /*
- * Asm.cxx
+ * Emu.cxx
  * 
  * Copyright 2017 NullByte4532 <nullbyte4532@nullbyte4532-Lenovo-G510>
  * 
@@ -22,15 +22,33 @@
  */
 
 
-#include <iostream>
+
 #include <cstdlib>
 #include <cstdio>
-#include "Stack.hxx"
-#include "opcodes.hxx"
+#include "cpu.hxx"
+
 
 int main(int argc, char **argv)
 {
+	unsigned int i;
+	cpu my_cpu;
+	FILE* fin;
+	if(argc!=2){
+		printf("Usage: emu.run <input_file>\n");
+		return 1;
+	}
 	
+	fin=fopen(argv[1], "rb");
+
+	my_cpu.load(fin);
+	if(debug)my_cpu.memdump();
+	my_cpu.reset();
+	while(1){
+			
+			my_cpu.clock();
+			if(debug)my_cpu.stack.dump(stdout);
+	}
+	 
 	return 0;
 }
 
