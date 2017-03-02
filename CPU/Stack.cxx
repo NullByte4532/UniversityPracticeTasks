@@ -82,6 +82,24 @@ unsigned char Stack::Pop(double* location){
 }
 return 3;
 }
+
+unsigned char Stack::Peek(double* location){
+	if(!Broken()){
+	if (capacity_>0){
+		if(verifyPointer(location)){
+			*location=data_[size_-1];
+			update();
+			return 0;
+		}else{
+			return 2;
+		}
+	}
+	else{
+		return 1;
+	}
+}
+return 3;
+}
 unsigned char Stack::Empty(){
 	if(!Broken()){
 	size_=0;
@@ -151,20 +169,20 @@ void checkError(int errcode){	//interprets error codes
 		case 0:
 			break;
 		case 1:
-			printf("Current stack size does not allow such operation.\n");
+			fprintf(stderr,"Current stack size does not allow such operation.\n");
 			sysexit();
 			break;
 	
 		case 2:
-			printf("Null pointer supplied.\n");
+			fprintf(stderr,"Null pointer supplied.\n");
 			sysexit();
 			break;
 		case 3:
-			printf("Corrupted stack.\n");
+			fprintf(stderr,"Corrupted stack.\n");
 			sysexit();
 			break;
 		default:
-			printf("Unknown error.\n");
+			fprintf(stderr,"Unknown error.\n");
 			sysexit();
 			break;
 	

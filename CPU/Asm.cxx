@@ -106,8 +106,7 @@ int process_op(FILE* fin, FILE* fout){
 	else if	(!strcmp(op, "SUB")){write_file(fout,  OP_SUB); return 1;}
 	else if	(!strcmp(op, "MUL")){write_file(fout,  OP_MUL); return 1;}
 	else if	(!strcmp(op, "DIV")){write_file(fout,  OP_DIV); return 1;}
-	else if	(!strcmp(op, "RSHIFT")){write_file(fout,  OP_RSHIFT); return process_arg(fin, fout);}
-	else if	(!strcmp(op, "LSHIFT")){write_file(fout,  OP_LSHIFT); return process_arg(fin, fout);}
+	else if	(!strcmp(op, "MOV")){write_file(fout,  OP_MOV); return process_arg(fin, fout)&&process_arg(fin, fout);}
 	else if	(!strcmp(op, "JMP")){write_file(fout,  OP_JMP); return process_arg(fin, fout);}
 	else if	(!strcmp(op, "JEZ")){write_file(fout,  OP_JEZ); return process_arg(fin, fout);}
 	else if	(!strcmp(op, "JNZ")){write_file(fout,  OP_JNZ); return process_arg(fin, fout);}
@@ -129,10 +128,8 @@ int main(int argc, char **argv)
 	char* fout_name;
 	FILE* fin;
 	FILE* fout;
-	int test_d=8;
-	int test_i=2;
+
 	int f=1;
-	printf("%d\n", test_d<<test_i);
 	fout_name="out.bin";
 	switch(argc-1){
 		case 1:
@@ -142,7 +139,7 @@ int main(int argc, char **argv)
 				fout_name=argv[2];
 				break;
 		default:
-			fprintf(stderr,"Usage: asm.run <input_file> [output_file]");
+			fprintf(stderr,"Usage: asm.run <input_file> [output_file]\n");
 			return 1;
 	}
 	fin=fopen(fin_name, "r+");

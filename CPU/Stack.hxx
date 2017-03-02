@@ -7,6 +7,7 @@ class Stack {
 		unsigned char Broken();				//Check integrity. Returns unsigned char.
 		unsigned char Push(double value);		//Push 'value' to the top of the stack
 		unsigned char Pop(double* location);	//Pop an element from the top of the stack and write it to 'location'
+		unsigned char Peek(double* location);	//Copy an element from the top of the stack and write it to 'location'
 		unsigned char Empty();				//Empty stack (does not clear nor reset memory)
 		int getSize();				//Returns current stack size
 		int getCapacity();			//Returns stack capacity
