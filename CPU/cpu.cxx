@@ -417,6 +417,7 @@ void cpu::clock(){
 			op_jez();
 			break;
 		case OP_JNZ:
+			
 			op_jnz();
 			break;
 		case OP_JLZ:
@@ -438,6 +439,7 @@ void cpu::clock(){
 			op_mov();
 			break;
 	}
+
 	
 }
 
@@ -465,7 +467,7 @@ cpu::cpu():
 {}
 void cpu::memdump(){
 	int i;
-	for(i=0; i<64; i++){
+	for(i=0; i<128; i++){
 		
 		printf("%x\n", ram.readC(i));
 	}

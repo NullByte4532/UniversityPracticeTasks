@@ -5,11 +5,10 @@
 #include "Stack.hxx"
 #include "opcodes.hxx"
 
-#define RAM_SIZE 128
+#define RAM_SIZE 256
 #define STACK_SIZE 8
 #define CALL_STACK_SIZE 16
 #define debug 0
-
 union reg {
 	int i;
 	double d;
