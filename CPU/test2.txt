@@ -8,7 +8,7 @@ ADD
 POP AX
 MOV IO BX
 MOV 0 IO
-CALL 76
+CALL &func
 HLT
 NOP
 NOP
@@ -18,12 +18,14 @@ NOP
 NOP
 NOP
 NOP
+:loop
 POP BX
+:func
 MOV BX IO
 MOV AX IO
 PUSH 1
 PUSH BX
 SUB
-JNZ 72
+JNZ &loop
 RET
 

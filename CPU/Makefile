@@ -1,5 +1,5 @@
 ASM_BIN_FILE=asm.run
-DEPS_ASM= Asm.o
+DEPS_ASM= Asm.o HashTable.o
 EMU_BIN_FILE=emu.run
 DEPS_EMU= Emu.o cpu.o Stack.o
 COMPILER=g++
@@ -10,6 +10,8 @@ $(ASM_BIN_FILE): $(DEPS_ASM)
 		$(COMPILER) $(DEPS_ASM) -o $(ASM_BIN_FILE)
 Stack.o: Stack.cxx
 		$(COMPILER) -c Stack.cxx
+HashTable.o: HashTable.cxx
+		$(COMPILER) -c HashTable.cxx
 Asm.o: Asm.cxx opcodes.hxx
 		$(COMPILER) -c Asm.cxx
 Emu.o: Emu.cxx
