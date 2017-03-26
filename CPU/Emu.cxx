@@ -31,22 +31,35 @@
 int main(int argc, char **argv)
 {
 	unsigned int i;
-	cpu my_cpu;
 	FILE* fin;
+	char tmpchar;
+	int memsize, stacksize;
 	if(argc!=2){
 		printf("Usage: emu.run <input_file>\n");
 		return 1;
 	}
 	
 	fin=fopen(argv[1], "rb");
-
+	fread(&tmpchar, sizeof(char), 1, fin);
+	if (tmpchar!=HEADER_H){
+		fprintf(stderr, "Error: Wrong header\n");
+		return 1;
+	}
+	fread(&tmpchar, sizeof(char), 1, fin);
+	if (tmpchar!=HEADER_L){
+		fprintf(stderr, "Error: Wrong header\n");
+		return 1;
+	}
+	fread(&memsize, sizeof(int), 1, fin);
+	fread(&stacksize, sizeof(int), 1, fin);
+	cpu my_cpu(memsize, stacksize);
 	my_cpu.load(fin);
 	if(debug)my_cpu.memdump();
 	my_cpu.reset();
 	while(1){
 			
 			my_cpu.clock();
-			if(debug)my_cpu.stack.dump(stdout);
+			//if(debug)my_cpu.stack.dump(stdout);
 	}
 	 
 	return 0;
