@@ -26,6 +26,7 @@
 #define R_ECX		0x03
 #define R_EIP		0x04
 #define R_IO		0x05
+#define R_ESP		0x06
 
 #define R_CODE		0x01
 #define N_CODE		0x02
@@ -33,10 +34,16 @@
 #define NI_CODE		0x04
 #define AI_CODE		0x05
 #define RI_CODE		0x06
+#define RA_CODE		0x07
+#define RAI_CODE	0x08
 
 #define ADDR_PREFIX 'h'
 #define ADDR_I_PREFIX 'H'
+#define LABEL_REF_PREFIX '&'
+#define LABEL_DEF_PREFIX ':'
 
-
+#define HEADER_H 0x45
+#define HEADER_L 0x32
+#define DEF_STACK_SIZE 256
 
 #endif

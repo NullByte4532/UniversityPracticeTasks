@@ -32,7 +32,7 @@
 
 
 double Ram::readD(unsigned int addr){
-	printf("Reading double from %d\n", addr); 
+	if(debug)printf("Reading double from %d\n", addr); 
 	if(addr+sizeof(double)/sizeof(char)>=RAM_SIZE){
 		fprintf(stderr,"ERROR: attempted to read double from %d when ram size is %d.", addr, RAM_SIZE);
 		sysexit();
@@ -92,6 +92,8 @@ int cpu::readregI(char code){
 				return ecx.i;
 			case R_EIP:
 				return eip.i;
+			case R_ESP:
+				return esp.i;
 			case R_IO:
 				scanf("%d", &tmp);
 				return tmp;
@@ -112,6 +114,8 @@ double cpu::readregD(char code){
 				return ecx.d;
 			case R_EIP:
 				return eip.d;
+			case R_ESP:
+				return esp.d;
 			case R_IO:
 				scanf("%lf", &tmp);
 				return tmp;
@@ -139,6 +143,9 @@ void cpu::writeregI(char code, int data){
 			case R_EIP:
 				 eip.i=data;
 				 return;
+			case R_ESP:
+				 esp.i=data;
+				 return;
 			case R_IO:
 				printf("OUTPUT: %d\n", data);
 				return;
@@ -163,6 +170,9 @@ void cpu::writeregD(char code, double data){
 			case R_EIP:
 				 eip.d=data;
 				 return;
+			case R_ESP:
+				 esp.d=data;
+				 return;
 			case R_IO:
 				printf("OUTPUT: %lf\n", data);
 				return;
@@ -180,6 +190,12 @@ int cpu::rarg(void* ptr){
 	char type;
 	type=ram.readC((unsigned)eip.i++);
 	switch(type){
+			case RA_CODE:
+				*((double*)ptr)=ram.readD((unsigned int)readregI(ram.readC((unsigned)eip.i++)));
+				return 2;
+			case RAI_CODE:
+				*((int*)ptr)=ram.readI((unsigned int)readregI(ram.readC((unsigned)eip.i++)));
+				return 1;
 			case RI_CODE:
 				*((int*)ptr)=readregI(ram.readC((unsigned)eip.i++));
 				return 1;
@@ -213,6 +229,12 @@ void cpu::wargI(int data){
 	char type;
 	type=ram.readC((unsigned)eip.i++);
 	switch(type){
+			case RA_CODE:
+				ram.writeD((unsigned int)readregI(ram.readC((unsigned)eip.i++)), (double) data);
+				return ;
+			case RAI_CODE:
+				ram.writeI((unsigned int)readregI(ram.readC((unsigned)eip.i++)), (int) data);
+				return ;
 			case RI_CODE:
 				writeregI(ram.readC((unsigned)eip.i++), data);
 				return ;
@@ -242,6 +264,12 @@ void cpu::wargD(double data){
 	type=ram.readC((unsigned)eip.i++);
 
 	switch(type){
+			case RA_CODE:
+				ram.writeD((unsigned int)readregI(ram.readC((unsigned)eip.i++)), (double) data);
+				return ;
+			case RAI_CODE:
+				ram.writeI((unsigned int)readregI(ram.readC((unsigned)eip.i++)), (int) data);
+				return ;
 			case RI_CODE:
 				writeregI(ram.readC((unsigned)eip.i++),(int) data);
 				return ;
@@ -344,7 +372,7 @@ void cpu::op_jez(){
 	checkError(stack.Peek(&a));
 	if(a==0){
 		op_jmp();
-	}
+	}else{rargI();}
 }
 
 void cpu::op_jnz(){
@@ -352,7 +380,7 @@ void cpu::op_jnz(){
 	checkError(stack.Peek(&a));
 	if(a!=0){
 		op_jmp();
-	}
+	}else{rargI();}
 }
 
 void cpu::op_jlz(){
@@ -360,7 +388,7 @@ void cpu::op_jlz(){
 	checkError(stack.Peek(&a));
 	if(a<0){
 		op_jmp();
-	}
+	}else{rargI();}
 }
 
 void cpu::op_jgz(){
@@ -368,7 +396,7 @@ void cpu::op_jgz(){
 	checkError(stack.Peek(&a));
 	if(a>0){
 		op_jmp();
-	}
+	}else{rargI();}
 }
 
 void cpu::op_hlt(){
@@ -390,52 +418,67 @@ void cpu::clock(){
 	if(debug)printf("Opcode: %x\n", opcode);
 	switch(opcode){
 		case OP_NOP:
+			if(debug)printf("[OP]NOP\n");
 			op_nop();
 			break;
 		case OP_PUSH:
+			if(debug)printf("[OP]PUSH\n");
 			op_push();
 			break;
 		case OP_POP:
+			if(debug)printf("[OP]POP\n");
 			op_pop();
 			break;
 		case OP_ADD:
+			if(debug)printf("[OP]ADD\n");
 			op_add();
 			break;
 		case OP_SUB:
+			if(debug)printf("[OP]SUB\n");
 			op_sub();
 			break;
 		case OP_MUL:
+			if(debug)printf("[OP]MUL\n");
 			op_mul();
 			break;
 		case OP_DIV:
+			if(debug)printf("[OP]DIV\n");
 			op_div();
 			break;
 		case OP_JMP:
+			if(debug)printf("[OP]JMP\n");
 			op_jmp();
 			break;
 		case OP_JEZ:
+			if(debug)printf("[OP]JEZ\n");
 			op_jez();
 			break;
 		case OP_JNZ:
-			
+			if(debug)printf("[OP]JNZ\n");
 			op_jnz();
 			break;
 		case OP_JLZ:
+			if(debug)printf("[OP]JLZ\n");
 			op_jlz();
 			break;
 		case OP_JGZ:
+			if(debug)printf("[OP]JGZ\n");
 			op_jgz();
 			break;
 		case OP_CALL:
+			if(debug)printf("[OP]CALL\n");
 			op_call();
 			break;
 		case OP_RET:
+			if(debug)printf("[OP]RET\n");
 			op_ret();
 			break;
 		case OP_HLT:
+			if(debug)printf("[OP]HLT\n");
 			op_hlt();
 			break;
 		case OP_MOV:
+			if(debug)printf("[OP]MOV\n");
 			op_mov();
 			break;
 	}
@@ -459,10 +502,39 @@ void cpu::load(FILE* fin){
 void Ram::load(FILE* fin){
 	fread(data_, sizeof(char), RAM_SIZE, fin);
 }
-
-cpu::cpu():
-	ram(RAM_SIZE),
-	stack((size_t)STACK_SIZE),
+unsigned char FakeStack::Empty(){
+	esp->i=RAM_SIZE-sizeof(double)/sizeof(char)-1;
+	return 0;
+}
+unsigned char FakeStack::Push(double val){
+	esp->i=esp->i-sizeof(double)/sizeof(char);
+	if (esp->i>RAM_SIZE-maxsize)
+		ram->writeD((unsigned)esp->i, val);
+	else checkError(1);
+	return 0;
+}
+unsigned char FakeStack::Pop(double* val){
+	if (esp->i<=RAM_SIZE-sizeof(double)/sizeof(char))
+		*val=ram->readD((unsigned)esp->i);
+	else checkError(1);
+	esp->i=esp->i+sizeof(double)/sizeof(char);
+	return 0;
+}
+unsigned char FakeStack::Peek(double* val){
+	if (esp->i<=RAM_SIZE-sizeof(double)/sizeof(char))
+		*val=ram->readD((unsigned)esp->i);
+	else checkError(1);
+	return 0;
+}
+FakeStack::FakeStack(reg* espP, Ram* ramP, int stacksize):
+esp(espP),
+ram(ramP),
+maxsize(stacksize)
+{}
+cpu::cpu(int memsize, int stacksize):
+	ram((unsigned)memsize),
+	stack(&esp, &ram, stacksize),
+	//stack((size_t)STACK_SIZE),
 	callstack((size_t)CALL_STACK_SIZE)
 {}
 void cpu::memdump(){

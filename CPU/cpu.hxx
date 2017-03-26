@@ -5,8 +5,8 @@
 #include "Stack.hxx"
 #include "opcodes.hxx"
 
-#define RAM_SIZE 256
-#define STACK_SIZE 8
+#define RAM_SIZE 512
+#define STACK_SIZE 80
 #define CALL_STACK_SIZE 16
 #define debug 0
 union reg {
@@ -29,21 +29,35 @@ class Ram {
 		void* data_;
 	
 };
+class FakeStack{
+	public:
+		unsigned char Push(double value);		//Push 'value' to the top of the stack
+		unsigned char Pop(double* location);	//Pop an element from the top of the stack and write it to 'location'
+		unsigned char Peek(double* location);	//Copy an element from the top of the stack and write it to 'location'
+		unsigned char Empty();
+		FakeStack(reg* esp, Ram* ram, int stacksize);
+	private:
+		reg* esp;
+		Ram* ram;
+		int maxsize;
+		
+};
 class cpu {
 	public:
 		void clock();
 		void load(FILE*);
 		void reset();
-		cpu();
+		cpu(int memsize, int stacksize);
 		void memdump();
-		Stack stack;
+		//Stack stack;
 	private:
 		reg eax;
 		reg ebx;
 		reg ecx;
 		reg eip;
+		reg esp;
 		Stack callstack;
-		
+		FakeStack stack;
 		Ram ram;
 		void op_nop();
 		void op_push();
@@ -72,4 +86,5 @@ class cpu {
 		int rargI();
 		
 };
+
 #endif 

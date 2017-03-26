@@ -76,14 +76,30 @@ int calcArgSize(FILE* fin){
 	else if	(!strcmp(arg, "CX")){return 2;}
 	else if	(!strcmp(arg, "IP")){return 2;}
 	else if	(!strcmp(arg, "IO")){return 2;}
-	else if	(arg[0]=='h'){return sizeof(int)/sizeof(char)+1;}
-	else if	(arg[0]=='H'){return sizeof(int)/sizeof(char)+1;}
-	else if	(arg[0]=='&'){return sizeof(int)/sizeof(char)+1;}
+	else if	(arg[0]==ADDR_PREFIX){
+				 if	(!strcmp(&arg[1], "AX")){return 2;}
+			else if	(!strcmp(&arg[1], "BX")){return 2;}
+			else if	(!strcmp(&arg[1], "CX")){return 2;}
+			else if	(!strcmp(&arg[1], "IP")){return 2;}
+			else if	(!strcmp(&arg[1], "IO")){return 2;}
+			else if	(!strcmp(&arg[1], "SP")){return 2;}
+			else{return 1+sizeof(int)/sizeof(char);}
+		}
+	else if	(arg[0]==ADDR_I_PREFIX){
+				 if	(!strcmp(&arg[1], "AX")){return 2;}
+			else if	(!strcmp(&arg[1], "BX")){return 2;}
+			else if	(!strcmp(&arg[1], "CX")){return 2;}
+			else if	(!strcmp(&arg[1], "IP")){return 2;}
+			else if	(!strcmp(&arg[1], "IO")){return 2;}
+			else if	(!strcmp(&arg[1], "SP")){return 2;}
+			else{return 1+sizeof(int)/sizeof(char);}
+		}
+	else if	(arg[0]==LABEL_REF_PREFIX){return sizeof(int)/sizeof(char)+1;}
 	else if (!strcmp(arg, "")){fprintf(stderr, "ERROR: Missing argument\n"); return 0;}
 	else                      {fprintf(stderr, "ERROR: Unknown argument %s\n", arg); return 0;}
 }
 
-void process_labels(FILE* fin, HashTable* htable){
+int process_labels(FILE* fin, HashTable* htable){
 int curAddr=0;
 while (1){
 	char ch;
@@ -93,7 +109,7 @@ while (1){
 	ch=fgetc(fin);
     while (ch && !isspace(ch) && ch!=0xffffffff) {
 		if (i>=OP_MAX_LENGTH){
-			fprintf(stderr, "ERROR: Too long operation name starting with %s\n", op); return;
+			fprintf(stderr, "ERROR: Too long operation name starting with %s\n", op); return -1;
 		}
 		op[i++]=ch;
 		ch=fgetc(fin);
@@ -114,13 +130,13 @@ while (1){
 	else if	(!strcmp(op, "CALL")){curAddr+=1+calcArgSize(fin);}
 	else if	(!strcmp(op, "RET")){curAddr+=1;}
 	else if	(!strcmp(op, "HLT")){curAddr+=1;}
-	else if	(op[0]==':'){htable->add(&op[1], curAddr);}
-	else if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return;}
-	else					 {fprintf(stderr, "ERROR: Unknown operation %s\n", op); return;}
+	else if	(op[0]==LABEL_DEF_PREFIX){htable->add(&op[1], curAddr);}
+	else if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return-1;}
+	else					 {fprintf(stderr, "ERROR: Unknown operation %s\n", op); return-1;}
 	
 }
 
-	
+	return curAddr;
 }
 void write_file(FILE* fout, char c){
 	fwrite(&c, sizeof(char), 1, fout);
@@ -169,14 +185,33 @@ int process_arg(FILE* fin, FILE* fout, HashTable* htable){
 	else if	(!strcmp(arg, "ECX")){write_file(fout, R_CODE); write_file(fout, R_ECX); return 1;}
 	else if	(!strcmp(arg, "EIP")){write_file(fout, R_CODE); write_file(fout, R_EIP); return 1;}
 	else if	(!strcmp(arg, "EIO")){write_file(fout, R_CODE); write_file(fout, R_IO); return 1;}
+	else if	(!strcmp(arg, "ESP")){write_file(fout, R_CODE); write_file(fout, R_ESP); return 1;}
 	else if	(!strcmp(arg, "AX")){write_file(fout, RI_CODE); write_file(fout, R_EAX); return 1;}
 	else if	(!strcmp(arg, "BX")){write_file(fout, RI_CODE); write_file(fout, R_EBX); return 1;}
 	else if	(!strcmp(arg, "CX")){write_file(fout, RI_CODE); write_file(fout, R_ECX); return 1;}
 	else if	(!strcmp(arg, "IP")){write_file(fout, RI_CODE); write_file(fout, R_EIP); return 1;}
 	else if	(!strcmp(arg, "IO")){write_file(fout, RI_CODE); write_file(fout, R_IO); return 1;}
-	else if	(arg[0]=='h'){write_file(fout, A_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
-	else if	(arg[0]=='H'){write_file(fout, AI_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
-	else if	(arg[0]=='&'){write_file(fout, NI_CODE);val=htable->get(&arg[1]);fwrite(&val, sizeof(int), 1, fout); return 1;}
+	else if	(!strcmp(arg, "SP")){write_file(fout, RI_CODE); write_file(fout, R_ESP); return 1;}
+	else if	(arg[0]==ADDR_PREFIX){
+				 if	(!strcmp(&arg[1], "AX")){write_file(fout, RA_CODE); write_file(fout, R_EAX); return 1;}
+			else if	(!strcmp(&arg[1], "BX")){write_file(fout, RA_CODE); write_file(fout, R_EBX); return 1;}
+			else if	(!strcmp(&arg[1], "CX")){write_file(fout, RA_CODE); write_file(fout, R_ECX); return 1;}
+			else if	(!strcmp(&arg[1], "IP")){write_file(fout, RA_CODE); write_file(fout, R_EIP); return 1;}
+			else if	(!strcmp(&arg[1], "IO")){write_file(fout, RA_CODE); write_file(fout, R_IO); return 1;}
+			else if	(!strcmp(&arg[1], "SP")){write_file(fout, RA_CODE); write_file(fout, R_ESP); return 1;}
+			else{write_file(fout, A_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
+		}
+	else if	(arg[0]==ADDR_I_PREFIX){
+			 if	(!strcmp(&arg[1], "AX")){write_file(fout, RAI_CODE); write_file(fout, R_EAX); return 1;}
+			else if	(!strcmp(&arg[1], "BX")){write_file(fout, RAI_CODE); write_file(fout, R_EBX); return 1;}
+			else if	(!strcmp(&arg[1], "CX")){write_file(fout, RAI_CODE); write_file(fout, R_ECX); return 1;}
+			else if	(!strcmp(&arg[1], "IP")){write_file(fout, RAI_CODE); write_file(fout, R_EIP); return 1;}
+			else if	(!strcmp(&arg[1], "IO")){write_file(fout, RAI_CODE); write_file(fout, R_IO); return 1;}
+			else if	(!strcmp(&arg[1], "SP")){write_file(fout, RAI_CODE); write_file(fout, R_ESP); return 1;}
+			else{write_file(fout, AI_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
+		
+		}
+	else if	(arg[0]==LABEL_REF_PREFIX){write_file(fout, NI_CODE);val=htable->get(&arg[1]);fwrite(&val, sizeof(int), 1, fout); return 1;}
 	else if (!strcmp(arg, "")){fprintf(stderr, "ERROR: Missing argument\n"); return 0;}
 	else                      {fprintf(stderr, "ERROR: Unknown argument %s\n", arg); return 0;}
 	
@@ -226,6 +261,7 @@ int main(int argc, char **argv)
 	FILE* fout;
 	HashTable htable(32);
 	int f=1;
+	int size, stack_size;
 	fout_name="out.bin";
 	switch(argc-1){
 		case 1:
@@ -240,7 +276,12 @@ int main(int argc, char **argv)
 	}
 	fin=fopen(fin_name, "r+");
 	fout=fopen(fout_name, "wb");
-	process_labels(fin, &htable);
+	write_file(fout,HEADER_H);
+	write_file(fout,HEADER_L);
+	stack_size=DEF_STACK_SIZE;
+	size=process_labels(fin, &htable)+stack_size;
+	fwrite(&size, sizeof(int), 1, fout);
+	fwrite(&stack_size, sizeof(int), 1, fout);
 	rewind(fin);
 	while(f){
 		f=process_op(fin, fout, &htable);
