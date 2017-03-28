@@ -8,7 +8,7 @@
 #define RAM_SIZE 512
 #define STACK_SIZE 80
 #define CALL_STACK_SIZE 16
-#define debug 0
+
 union reg {
 	int i;
 	double d;

@@ -101,6 +101,8 @@ int calcArgSize(FILE* fin){
 
 int process_labels(FILE* fin, HashTable* htable){
 int curAddr=0;
+int f=0, c=0;
+
 while (1){
 	char ch;
 	char* op;
@@ -114,6 +116,7 @@ while (1){
 		op[i++]=ch;
 		ch=fgetc(fin);
 	}
+	if (!f){
 	if		(!strcmp(op, "NOP")){curAddr+=1;}
 	else if	(!strcmp(op, "PUSH")){curAddr+=1+calcArgSize(fin);}
 	else if	(!strcmp(op, "POP")){curAddr+=1+calcArgSize(fin);}
@@ -131,8 +134,22 @@ while (1){
 	else if	(!strcmp(op, "RET")){curAddr+=1;}
 	else if	(!strcmp(op, "HLT")){curAddr+=1;}
 	else if	(op[0]==LABEL_DEF_PREFIX){htable->add(&op[1], curAddr);}
+	else if (!strcmp(op, ".data")){ f=1;}
 	else if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return-1;}
 	else					 {fprintf(stderr, "ERROR: Unknown operation %s\n", op); return-1;}
+}else{
+	if(c==0){
+		if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return-1;}
+		htable->add(op, curAddr);
+		if(debug) printf("HASHED %s AS %d\n", op, curAddr);
+		c=1;
+	}else{
+		sscanf(op, "%d", &c);
+		curAddr+=c;
+		c=0;
+	}
+	
+}
 	
 }
 
@@ -199,6 +216,7 @@ int process_arg(FILE* fin, FILE* fout, HashTable* htable){
 			else if	(!strcmp(&arg[1], "IP")){write_file(fout, RA_CODE); write_file(fout, R_EIP); return 1;}
 			else if	(!strcmp(&arg[1], "IO")){write_file(fout, RA_CODE); write_file(fout, R_IO); return 1;}
 			else if	(!strcmp(&arg[1], "SP")){write_file(fout, RA_CODE); write_file(fout, R_ESP); return 1;}
+			else if (arg[1]==LABEL_REF_PREFIX){write_file(fout, A_CODE); val=htable->get(&arg[2]);fwrite(&val, sizeof(int), 1, fout);if(debug) printf("!\n"); return 1;}
 			else{write_file(fout, A_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
 		}
 	else if	(arg[0]==ADDR_I_PREFIX){
@@ -208,6 +226,7 @@ int process_arg(FILE* fin, FILE* fout, HashTable* htable){
 			else if	(!strcmp(&arg[1], "IP")){write_file(fout, RAI_CODE); write_file(fout, R_EIP); return 1;}
 			else if	(!strcmp(&arg[1], "IO")){write_file(fout, RAI_CODE); write_file(fout, R_IO); return 1;}
 			else if	(!strcmp(&arg[1], "SP")){write_file(fout, RAI_CODE); write_file(fout, R_ESP); return 1;}
+			else if (arg[1]==LABEL_REF_PREFIX){write_file(fout, AI_CODE); val=htable->get(&arg[2]);fwrite(&val, sizeof(int), 1, fout);if(debug) printf("!\n"); return 1;}
 			else{write_file(fout, AI_CODE);sscanf(&arg[1],"%d", &val); fwrite(&val, sizeof(int), 1, fout); return 1;}
 		
 		}
@@ -246,7 +265,7 @@ int process_op(FILE* fin, FILE* fout, HashTable* htable){
 	else if	(!strcmp(op, "RET")){write_file(fout,  OP_RET); return 1;}
 	else if	(!strcmp(op, "HLT")){write_file(fout,  OP_HLT); return 1;}
 	else if	(op[0]==':'){return 1;}
-	else if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return 0;}
+	else if	(!strcmp(op, "")||!strcmp(op, ".data")){fprintf(stdout, "done.\n"); return 0;}
 	else					 {fprintf(stderr, "ERROR: Unknown operation %s\n", op); return 0;}
 	
 	
