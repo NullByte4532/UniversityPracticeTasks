@@ -29,6 +29,7 @@
 #include <malloc.h>
 #include "opcodes.hxx"
 #include "HashTable.hxx"
+#include "Stack.hxx"
 int calcArgSize(FILE* fin){
 	char ch;
 	char* arg;
@@ -135,11 +136,11 @@ while (1){
 	else if	(!strcmp(op, "HLT")){curAddr+=1;}
 	else if	(op[0]==LABEL_DEF_PREFIX){htable->add(&op[1], curAddr);}
 	else if (!strcmp(op, ".data")){ f=1;}
-	else if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return-1;}
-	else					 {fprintf(stderr, "ERROR: Unknown operation %s\n", op); return-1;}
+	else if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return curAddr;}
+	else					 {fprintf(stderr, "ERROR: Unknown operation %s\n", op); sysexit();}
 }else{
 	if(c==0){
-		if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return-1;}
+		if	(!strcmp(op, "")){fprintf(stdout, "done.\n"); return curAddr;}
 		htable->add(op, curAddr);
 		if(debug) printf("HASHED %s AS %d\n", op, curAddr);
 		c=1;

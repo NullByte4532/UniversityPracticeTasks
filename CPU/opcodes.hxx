@@ -2,8 +2,9 @@
 #define __opcodes_H_INCLUDED__
 #define OP_MAX_LENGTH	6
 #define ARG_MAX_LENGTH	9
-
+#define CALL_STACK_SIZE 16
 #define debug 0
+
 #define OP_NOP		0x01
 #define OP_PUSH		0x02
 #define OP_POP		0x03
