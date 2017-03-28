@@ -30,6 +30,7 @@
 #include <cassert>
 #include <string.h>
 #include "HashTable.hxx"
+#include "opcodes.hxx"
 unsigned int HashTable::hash(unsigned char *str){
     unsigned long hash = 5381;
     int c;
@@ -82,7 +83,7 @@ void List::add(Tablelem* val){
 	}
 	curPtr_->val=*val;
 	len+=1;
-	printf("ADDED: len=%d\n", len);
+	if(debug)printf("ADDED: len=%d\n", len);
 }
 Tablelem* List::get(){
 	return &(curPtr_->val);

@@ -29,58 +29,10 @@
 #include "opcodes.hxx"
 #include "cpu.hxx"
 #include <malloc.h>
+#include "ram.hxx"
+#include "FakeStack.hxx"
+#include "instructions.cxx"
 
-
-double Ram::readD(unsigned int addr){
-	if(debug)printf("Reading double from %d\n", addr); 
-	if(addr+sizeof(double)/sizeof(char)>=RAM_SIZE){
-		fprintf(stderr,"ERROR: attempted to read double from %d when ram size is %d.", addr, RAM_SIZE);
-		sysexit();
-	}
-	return ((double*)&(((char*)data_)[addr]))[0];	
-}
-int Ram::readI(unsigned int addr){
-	if(debug)printf("Reading int from %d\n", addr); 
-	if(addr+sizeof(int)/sizeof(char)>=RAM_SIZE){
-		fprintf(stderr,"ERROR: attempted to read int from %d when ram size is %d.", addr, RAM_SIZE);
-		sysexit();
-	}
-	return ((int*)&(((char*)data_)[addr]))[0];		
-}
-char Ram::readC(unsigned int addr){
-	if(debug)printf("Reading char from %d\n", addr); 
-	if(addr+1>=RAM_SIZE){
-		fprintf(stderr,"ERROR: attempted to read char from %d when ram size is %d.", addr, RAM_SIZE);
-		sysexit();
-	}
-	return ((char*)data_)[addr];		
-}
-void Ram::writeD(unsigned int addr, double data){
-	
-	if(debug)printf("Writing double %lf to %d\n", data, addr); 
-	if(addr+sizeof(double)/sizeof(char)>=RAM_SIZE){
-		fprintf(stderr,"ERROR: attempted to write double to %d when ram size is %d.", addr, RAM_SIZE);
-		sysexit();
-	}
-	((double*)&(((char*)data_)[addr]))[0]=data;	
-}
-void Ram::writeI(unsigned int addr, int data){
-	if(debug)printf("Writing int %d to %d\n", data, addr);
-	if(addr+sizeof(int)/sizeof(char)>=RAM_SIZE){
-		fprintf(stderr,"ERROR: attempted to write int to %d when ram size is %d.", addr, RAM_SIZE);
-		sysexit();
-	}
-	((int*)&(((char*)data_)[addr]))[0]=data;	
-}
-Ram::Ram(unsigned int size){
-	data_=calloc(size, sizeof(char));
-}
-Ram::~Ram(){
-		free(data_);
-}
-void cpu::op_nop(){
-return;	
-}
 int cpu::readregI(char code){
 	int tmp;
 	switch(code){
@@ -320,97 +272,7 @@ int cpu::rargI(){
 	}
 	
 }
-void cpu::op_mov(){
-	double tmp;
-	tmp=rargD();
-	wargD(tmp);
-}
-void cpu::op_push(){
-		checkError(stack.Push(rargD()));
-}
-void cpu::op_pop(){
-	double tmp;
-	checkError(stack.Pop(&tmp));
-	wargD(tmp);
-}
 
-void cpu::op_add(){
-		double a, b;
-		checkError(stack.Pop(&a));
-		checkError(stack.Pop(&b));
-		checkError(stack.Push(a+b));
-}
-
-
-void cpu::op_sub(){
-		double a, b;
-		checkError(stack.Pop(&a));
-		checkError(stack.Pop(&b));
-		checkError(stack.Push(a-b));
-}
-
-void cpu::op_mul(){
-		double a, b;
-		checkError(stack.Pop(&a));
-		checkError(stack.Pop(&b));
-		checkError(stack.Push(a*b));
-}
-
-void cpu::op_div(){
-		double a, b;
-		checkError(stack.Pop(&a));
-		checkError(stack.Pop(&b));
-		checkError(stack.Push(a/b));
-}
-
-void cpu::op_jmp(){
-	eip.i=(unsigned)(rargI());
-}
-
-void cpu::op_jez(){
-	double a;
-	checkError(stack.Peek(&a));
-	if(a==0){
-		op_jmp();
-	}else{rargI();}
-}
-
-void cpu::op_jnz(){
-	double a;
-	checkError(stack.Peek(&a));
-	if(a!=0){
-		op_jmp();
-	}else{rargI();}
-}
-
-void cpu::op_jlz(){
-	double a;
-	checkError(stack.Peek(&a));
-	if(a<0){
-		op_jmp();
-	}else{rargI();}
-}
-
-void cpu::op_jgz(){
-	double a;
-	checkError(stack.Peek(&a));
-	if(a>0){
-		op_jmp();
-	}else{rargI();}
-}
-
-void cpu::op_hlt(){
-	sysexit();
-}
-
-void cpu::op_call(){
-	checkError(callstack.Push(eip.d));
-	op_jmp();
-}
-
-void cpu::op_ret(){
-	checkError(callstack.Pop(&eip.d));
-}
 void cpu::clock(){
 	char opcode;
 	if(debug)printf("EIP: %d\n", eip.i);
@@ -499,44 +361,13 @@ void cpu::load(FILE* fin){
 	ram.load(fin);
 }
 
-void Ram::load(FILE* fin){
-	fread(data_, sizeof(char), RAM_SIZE, fin);
-}
-unsigned char FakeStack::Empty(){
-	esp->i=RAM_SIZE-sizeof(double)/sizeof(char)-1;
-	return 0;
-}
-unsigned char FakeStack::Push(double val){
-	esp->i=esp->i-sizeof(double)/sizeof(char);
-	if (esp->i>RAM_SIZE-maxsize)
-		ram->writeD((unsigned)esp->i, val);
-	else checkError(1);
-	return 0;
-}
-unsigned char FakeStack::Pop(double* val){
-	if (esp->i<=RAM_SIZE-sizeof(double)/sizeof(char))
-		*val=ram->readD((unsigned)esp->i);
-	else checkError(1);
-	esp->i=esp->i+sizeof(double)/sizeof(char);
-	return 0;
-}
-unsigned char FakeStack::Peek(double* val){
-	if (esp->i<=RAM_SIZE-sizeof(double)/sizeof(char))
-		*val=ram->readD((unsigned)esp->i);
-	else checkError(1);
-	return 0;
-}
-FakeStack::FakeStack(reg* espP, Ram* ramP, int stacksize):
-esp(espP),
-ram(ramP),
-maxsize(stacksize)
-{}
+
 cpu::cpu(int memsize, int stacksize):
 	ram((unsigned)memsize),
 	stack(&esp, &ram, stacksize),
 	//stack((size_t)STACK_SIZE),
 	callstack((size_t)CALL_STACK_SIZE)
-{}
+{if(debug)printf("memsize=%d", memsize);}
 void cpu::memdump(){
 	int i;
 	for(i=0; i<128; i++){

@@ -4,44 +4,14 @@
 #include <cstdio>
 #include "Stack.hxx"
 #include "opcodes.hxx"
+#include "ram.hxx"
+#include "FakeStack.hxx"
+#include "reg.hxx"
 
-#define RAM_SIZE 512
-#define STACK_SIZE 80
-#define CALL_STACK_SIZE 16
-#define debug 0
-union reg {
-	int i;
-	double d;
-};
 
-class Ram {
-	public:
-		Ram(unsigned int size);
-		~Ram();
-		void writeD(unsigned int addr, double data);
-		void writeI(unsigned int addr, int data);
-		double readD(unsigned int addr);
-		int readI(unsigned int addr);
-		char readC(unsigned int addr);
-		void load(FILE* fin);
-		
-	private:
-		void* data_;
-	
-};
-class FakeStack{
-	public:
-		unsigned char Push(double value);		//Push 'value' to the top of the stack
-		unsigned char Pop(double* location);	//Pop an element from the top of the stack and write it to 'location'
-		unsigned char Peek(double* location);	//Copy an element from the top of the stack and write it to 'location'
-		unsigned char Empty();
-		FakeStack(reg* esp, Ram* ram, int stacksize);
-	private:
-		reg* esp;
-		Ram* ram;
-		int maxsize;
-		
-};
+
+
+
 class cpu {
 	public:
 		void clock();
