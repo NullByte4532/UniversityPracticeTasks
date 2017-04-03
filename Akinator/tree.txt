@@ -1,0 +1,1 @@
+(Does it use yum?; (Is it a commercial product?; (Red Hat; N; N) ; (Fedora; N; N) ) ; (Does it have something to do with space?; (Ubuntu; N; N) ; (Is it the #1 on distrowatch?; (Linux Mint; N; N) ; (Debian; N; N) ) ) ) 
