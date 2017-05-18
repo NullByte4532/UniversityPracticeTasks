@@ -2,14 +2,7 @@
 #include <malloc.h>
 #include <string.h>
 #include "Tree.h"
-/*
-typedef int (*cmp_func)(void*, void*);
-typedef int (*do_func)(void*);
-typedef struct stree_node tree_node;
-typedef struct sTree Tree;
-struct stree_node{void* data; tree_node* right; tree_node* left; int height; int ncount;};
-struct sTree{tree_node* root; size_t datalen; cmp_func cmp;};
-*/
+#define debug 0
 Tree* tree_create(size_t datalen, cmp_func cmp){
 	Tree* tmp;
 	tmp=calloc(1, sizeof(Tree));
@@ -88,92 +81,169 @@ int tree_getHeight_(tree_node* ptr){
 }
 int tree_getNodeCount_(tree_node* ptr){
 	if(ptr){
-		return 1+tree_getHeight_(ptr->right)+tree_getHeight_(ptr->left);
+		return 1+tree_getNodeCount_(ptr->right)+tree_getNodeCount_(ptr->left);
 		
 	}else return 0;
 	
 }
 int tree_getHeight(Tree* tree){
-	
+	if(!tree) return -1;
 	return tree_getHeight_(tree->root);
 }
 int tree_getNodeCount(Tree* tree){
-	
+	if(!tree) return -1;
 	return tree_getNodeCount_(tree->root);
 }
 int tree_destroy(Tree* tree){
 	int ret;
+	if(!tree) return 1;
 	ret= tree_del_by_ptr_(tree, &tree->root);
 	free(tree);
 	return ret;
 }
-int tree_walk_pre(tree_node* ptr, do_func callback){
+int tree_walk_pre(tree_node* ptr, do_func callback, int lvl){
 	int ret=0;
-	ret=callback(ptr->data);
-	ret=ret||tree_walk_pre(ptr->left, callback);
-	ret=ret||tree_walk_pre(ptr->right, callback);
+	if (!ptr) return 0;
+	ret=callback(ptr->data, lvl);
+	ret=ret||tree_walk_pre(ptr->left, callback, lvl+1);
+	ret=ret||tree_walk_pre(ptr->right, callback, lvl+1);
 	return ret;
 }
-int tree_walk_in(tree_node* ptr, do_func callback){
+int tree_walk_in(tree_node* ptr, do_func callback, int lvl){
 	int ret=0;
-	ret=ret||tree_walk_pre(ptr->left, callback);
-	ret=ret||callback(ptr->data);
-	ret=ret||tree_walk_pre(ptr->right, callback);
+	if (!ptr) return 0;
+	ret=ret||tree_walk_pre(ptr->left, callback, lvl+1);
+	ret=ret||callback(ptr->data, lvl);
+	ret=ret||tree_walk_pre(ptr->right, callback, lvl+1);
 	return ret;
 }
-int tree_walk_post(tree_node* ptr, do_func callback){
+int tree_walk_post(tree_node* ptr, do_func callback, int lvl){
 	int ret=0;
-	ret=ret||tree_walk_pre(ptr->left, callback);
-	ret=ret||tree_walk_pre(ptr->right, callback);
-	ret=ret||callback(ptr->data);
+	if (!ptr) return 0;
+	ret=ret||tree_walk_pre(ptr->left, callback, lvl+1);
+	ret=ret||tree_walk_pre(ptr->right, callback, lvl+1);
+	ret=ret||callback(ptr->data, lvl);
 	return ret;
 }
-int tree_walk_search(Tree* tree, tree_node* cur, void* dataPtr, do_func callback){
+int tree_walk_search(Tree* tree, tree_node* cur, void* dataPtr, do_func callback, int lvl){
 	int res;
 	int ret=0;
 	if (!cur) return 0;
 	res=(tree->cmp)(cur->data, dataPtr);
-	if(res<0) ret=ret||tree_walk_search(tree, cur->left, dataPtr, callback);
+	if(res<0) ret=ret||tree_walk_search(tree, cur->left, dataPtr, callback, lvl+1);
 	else{
-	if(res==0) ret=ret||callback(cur->data);
-	ret=ret||tree_walk_search(tree, cur->right, dataPtr, callback);
+	if(res==0) ret=ret||callback(cur->data, lvl);
+	ret=ret||tree_walk_search(tree, cur->right, dataPtr, callback, lvl+1);
 	}
 	return ret;
 }
 int tree_walk(Tree* tree,  do_func callback, wk_method walk_method, void* search_for){
-	if(search_for) return tree_walk_search(tree, tree->root, search_for, callback);
+	if(!tree) return 2;
+	if(!callback) return 3;
+	if(search_for) return tree_walk_search(tree, tree->root, search_for, callback, 1);
 	switch(walk_method){
 		case WK_PRE_ORDER:
-			return tree_walk_pre(tree->root, callback);
+			return tree_walk_pre(tree->root, callback, 1);
 		case WK_IN_ORDER:
-			return tree_walk_in(tree->root, callback);
+			return tree_walk_in(tree->root, callback, 1);
 		case WK_POST_ORDER:
-			return tree_walk_post(tree->root, callback);
+			return tree_walk_post(tree->root, callback, 1);
 		default:
 			return 5;
 	}
 	
 }
 void tree_rotateLeft(tree_node** cur){
+		if(debug)printf("[DEBUG] rotating left\n");
 		tree_node* tmp_node;
 		tmp_node=(*cur)->left;
+		if(debug)printf("[DEBUG] .");
 		(*cur)->left=tmp_node->right;
+		if(debug)printf(".");
 		tmp_node->right=(*cur);
+		if(debug)printf(".");
 		(*cur) = tmp_node;
+	if(debug)printf(".\n");
+		if(debug)printf("[DEBUG] rotated\n");
 }
 void tree_rotateRight(tree_node** cur){
+		if(debug)printf("[DEBUG] rotating right\n");
 		tree_node* tmp_node;
 		tmp_node=(*cur)->right;
+		if(debug)printf("[DEBUG] .");
 		(*cur)->right=tmp_node->left;
+		if(debug)printf(".");
 		tmp_node->left=(*cur);
+		if(debug)printf(".");
 		(*cur) = tmp_node;
+		if(debug)printf(".\n");
+		if(debug)printf("[DEBUG] rotated\n");
+}
+
+
+void push(Tree* tree, tree_node** data){
+	stack_node* tmp;
+	tmp=calloc(1, sizeof(stack_node));
+	tmp->data=data;
+	tmp->next=NULL;
+	if(tree->stack){
+		
+		 tree->stack_l->next=tmp;
+		 tree->stack_l=tmp;
+	}
+	else{
+		
+		 tree->stack_l=tmp;
+		 tree->stack=tmp;
+	}
+}
+tree_node** pop(Tree* tree){
+	tree_node** tmp;
+	stack_node* tmp_;
+	tmp=tree->stack->data;
+	tmp_=tree->stack;
+	tree->stack=tree->stack->next;
+	free(tmp_);
+	return tmp;
+}
+void grabheights(int* hr, int* hl, tree_node** cur){
+	*hr=tree_getHeight_((*cur)->right);
+	*hl=tree_getHeight_((*cur)->left);
+	
+}
+int tree_balance_(Tree* tree, tree_node** start){
+	
+	if(debug)printf("[DEBUG] running balance\n");
+		if(start && *start){
+			tree_getHeight(tree);
+			
+
+			push(tree,start);
+			
+			while (tree->stack){
+				tree_node** cur;
+				int hr, hl;
+				cur=pop(tree);
+				
+				grabheights(&hr, &hl, cur);
+				if(debug)printf("[DEBUG] starting rotation\n");
+				while(-(hr-hl)>1){  tree_rotateLeft(cur); grabheights(&hr, &hl, cur);}
+				while((hr-hl)>1){  tree_rotateRight(cur); grabheights(&hr, &hl, cur);}
+				
+				if((*cur)->right)push(tree,&(*cur)->right);
+				if((*cur)->left)push(tree,&(*cur)->left);
+			
+			}
+			
+			
+			
+			
+			
+		} return 0;
+	
 }
 int tree_balance(Tree* tree){
-	
-	
-}
-int main(){
-	
-	
-return 0;	
+	if(!tree) return 1;
+	tree_balance_(tree,&tree->root);
+	return 0;
 }
