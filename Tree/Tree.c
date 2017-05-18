@@ -1,8 +1,6 @@
-#include <stdio.h>
 #include <malloc.h>
 #include <string.h>
 #include "Tree.h"
-#define debug 0
 Tree* tree_create(size_t datalen, cmp_func cmp){
 	Tree* tmp;
 	tmp=calloc(1, sizeof(Tree));
@@ -154,30 +152,19 @@ int tree_walk(Tree* tree,  do_func callback, wk_method walk_method, void* search
 	
 }
 void tree_rotateLeft(tree_node** cur){
-		if(debug)printf("[DEBUG] rotating left\n");
+		
 		tree_node* tmp_node;
 		tmp_node=(*cur)->left;
-		if(debug)printf("[DEBUG] .");
 		(*cur)->left=tmp_node->right;
-		if(debug)printf(".");
 		tmp_node->right=(*cur);
-		if(debug)printf(".");
 		(*cur) = tmp_node;
-	if(debug)printf(".\n");
-		if(debug)printf("[DEBUG] rotated\n");
 }
 void tree_rotateRight(tree_node** cur){
-		if(debug)printf("[DEBUG] rotating right\n");
 		tree_node* tmp_node;
 		tmp_node=(*cur)->right;
-		if(debug)printf("[DEBUG] .");
 		(*cur)->right=tmp_node->left;
-		if(debug)printf(".");
 		tmp_node->left=(*cur);
-		if(debug)printf(".");
 		(*cur) = tmp_node;
-		if(debug)printf(".\n");
-		if(debug)printf("[DEBUG] rotated\n");
 }
 
 
@@ -213,31 +200,21 @@ void grabheights(int* hr, int* hl, tree_node** cur){
 }
 int tree_balance_(Tree* tree, tree_node** start){
 	
-	if(debug)printf("[DEBUG] running balance\n");
 		if(start && *start){
 			tree_getHeight(tree);
-			
-
 			push(tree,start);
-			
 			while (tree->stack){
 				tree_node** cur;
 				int hr, hl;
 				cur=pop(tree);
 				
 				grabheights(&hr, &hl, cur);
-				if(debug)printf("[DEBUG] starting rotation\n");
 				while(-(hr-hl)>1){  tree_rotateLeft(cur); grabheights(&hr, &hl, cur);}
 				while((hr-hl)>1){  tree_rotateRight(cur); grabheights(&hr, &hl, cur);}
 				
 				if((*cur)->right)push(tree,&(*cur)->right);
 				if((*cur)->left)push(tree,&(*cur)->left);
-			
 			}
-			
-			
-			
-			
 			
 		} return 0;
 	
