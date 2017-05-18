@@ -1,14 +1,14 @@
 #include <stddef.h>
 typedef int (*cmp_func)(void*, void*); //compare function
-typedef int (*do_func)(void*, int); //callback function
-typedef struct stree_node tree_node;
+typedef int (*do_func)(void*, int); //callback function. First parameter is a pointer to data, second- height at which node is located. Must return 0 in case of success
+typedef struct stree_node tree_node; 
 typedef struct sTree Tree;
 typedef struct sstack_node stack_node;
-struct stree_node{void* data; tree_node* right; tree_node* left;};
-struct sTree{tree_node* root; size_t datalen; cmp_func cmp; stack_node* stack;stack_node* stack_l;};
-struct sstack_node { tree_node** data; stack_node* next;};
+struct stree_node{void* data; tree_node* right; tree_node* left;}; //structure for tree node
+struct sTree{tree_node* root; size_t datalen; cmp_func cmp; stack_node* stack;stack_node* stack_l;}; //structure for tree 'object'
+struct sstack_node { tree_node** data; stack_node* next;}; //structure for node of a list used in a FIFO stack used in balancing.
 
-enum wk_method {WK_PRE_ORDER, WK_IN_ORDER, WK_POST_ORDER};
+enum wk_method {WK_PRE_ORDER, WK_IN_ORDER, WK_POST_ORDER}; //enum defining walk methods
 typedef enum wk_method wk_method;
 
 
