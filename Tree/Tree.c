@@ -11,16 +11,16 @@ Tree* tree_create(size_t datalen, cmp_func cmp){
 	}
 	else return NULL;
 }  
-int tree_addNode_(Tree* tree, tree_node** cur, void* dataPtr){
+err_code tree_addNode_(Tree* tree, tree_node** cur, void* dataPtr){
 	void* tmp;
 	int res;
 	if(!(*cur)){
 		*cur=calloc(1, sizeof(tree_node));
 		tmp=calloc(1,tree->datalen);
-		if(!(*cur && tmp)) return 1;
+		if(!(*cur && tmp)) return ERR_MALLOC_FAIL;
 		memcpy(tmp, dataPtr, tree->datalen);
 		(*cur)->data=tmp;
-		return 0;
+		return OK;
 	}else{
 		res=(tree->cmp)((*cur)->data, dataPtr);
 		if(res<0) tmp=&((*cur)->left);
@@ -30,7 +30,7 @@ int tree_addNode_(Tree* tree, tree_node** cur, void* dataPtr){
 		
 	}
 }
-int tree_del_by_ptr_(Tree* tree, tree_node** ptr){
+err_code tree_del_by_ptr_(Tree* tree, tree_node** ptr){
 	int res=0;
 	if(*ptr){
 	free((*ptr)->data);
@@ -39,14 +39,14 @@ int tree_del_by_ptr_(Tree* tree, tree_node** ptr){
 	free(*ptr);
 	*ptr=NULL;
 	return res;
-	}else return 0;
+	}else return OK;
 	
 }
-int tree_delNode_(Tree* tree, tree_node** cur, void* dataPtr){
+err_code tree_delNode_(Tree* tree, tree_node** cur, void* dataPtr){
 	void* tmp;
 	int res;
 	if(!(*cur)){
-		return 4;
+		return ERR_NOT_FOUND;
 	}else{
 		res=(tree->cmp)((*cur)->data, dataPtr);
 		if(res<0) tmp=&((*cur)->left);
@@ -56,14 +56,14 @@ int tree_delNode_(Tree* tree, tree_node** cur, void* dataPtr){
 		
 	}
 }
-int tree_addNode(Tree* tree, void* dataPtr){
-	if(!tree) return 2;
-	if(!dataPtr) return 3;
+err_code tree_addNode(Tree* tree, void* dataPtr){
+	if(!tree) return ERR_NULL_POINTER;
+	if(!dataPtr) return ERR_NULL_POINTER;
 	return tree_addNode_(tree, &(tree->root), dataPtr);
 }
-int tree_delNode(Tree* tree, void* dataPtr){
-	if(!tree) return 2;
-	if(!dataPtr) return 3;
+err_code tree_delNode(Tree* tree, void* dataPtr){
+	if(!tree) return ERR_NULL_POINTER;
+	if(!dataPtr) return ERR_NULL_POINTER;
 	return tree_delNode_(tree, &(tree->root), dataPtr);
 }
 int max(int a, int b){
@@ -92,38 +92,38 @@ int tree_getNodeCount(Tree* tree){
 	if(!tree) return -1;
 	return tree_getNodeCount_(tree->root);
 }
-int tree_destroy(Tree* tree){
+err_code tree_destroy(Tree* tree){
 	int ret;
-	if(!tree) return 1;
+	if(!tree) return ERR_NULL_POINTER;
 	ret= tree_del_by_ptr_(tree, &tree->root);
 	free(tree);
 	return ret;
 }
-int tree_walk_pre(tree_node* ptr, do_func callback, int lvl){
+err_code tree_walk_pre(tree_node* ptr, do_func callback, int lvl){
 	int ret=0;
 	if (!ptr) return 0;
 	ret=callback(ptr->data, lvl);
 	ret=ret||tree_walk_pre(ptr->left, callback, lvl+1);
 	ret=ret||tree_walk_pre(ptr->right, callback, lvl+1);
-	return ret;
+	return ret*ERR_CALLBACK_FAIL;
 }
-int tree_walk_in(tree_node* ptr, do_func callback, int lvl){
+err_code tree_walk_in(tree_node* ptr, do_func callback, int lvl){
 	int ret=0;
 	if (!ptr) return 0;
 	ret=ret||tree_walk_pre(ptr->left, callback, lvl+1);
 	ret=ret||callback(ptr->data, lvl);
 	ret=ret||tree_walk_pre(ptr->right, callback, lvl+1);
-	return ret;
+	return ret*ERR_CALLBACK_FAIL;
 }
-int tree_walk_post(tree_node* ptr, do_func callback, int lvl){
+err_code tree_walk_post(tree_node* ptr, do_func callback, int lvl){
 	int ret=0;
 	if (!ptr) return 0;
 	ret=ret||tree_walk_pre(ptr->left, callback, lvl+1);
 	ret=ret||tree_walk_pre(ptr->right, callback, lvl+1);
 	ret=ret||callback(ptr->data, lvl);
-	return ret;
+	return ret*ERR_CALLBACK_FAIL;
 }
-int tree_walk_search(Tree* tree, tree_node* cur, void* dataPtr, do_func callback, int lvl){
+err_code tree_walk_search(Tree* tree, tree_node* cur, void* dataPtr, do_func callback, int lvl){
 	int res;
 	int ret=0;
 	if (!cur) return 0;
@@ -133,11 +133,11 @@ int tree_walk_search(Tree* tree, tree_node* cur, void* dataPtr, do_func callback
 	if(res==0) ret=ret||callback(cur->data, lvl);
 	ret=ret||tree_walk_search(tree, cur->right, dataPtr, callback, lvl+1);
 	}
-	return ret;
+	return ret*ERR_CALLBACK_FAIL;
 }
-int tree_walk(Tree* tree,  do_func callback, wk_method walk_method, void* search_for){
-	if(!tree) return 2;
-	if(!callback) return 3;
+err_code tree_walk(Tree* tree,  do_func callback, wk_method walk_method, void* search_for){
+	if(!tree) return ERR_NULL_POINTER;
+	if(!callback) return ERR_NULL_POINTER;
 	if(search_for) return tree_walk_search(tree, tree->root, search_for, callback, 1);
 	switch(walk_method){
 		case WK_PRE_ORDER:
@@ -147,7 +147,7 @@ int tree_walk(Tree* tree,  do_func callback, wk_method walk_method, void* search
 		case WK_POST_ORDER:
 			return tree_walk_post(tree->root, callback, 1);
 		default:
-			return 5;
+			return ERR_UNKNOWN_WK_METHOD;
 	}
 	
 }
@@ -219,8 +219,8 @@ int tree_balance_(Tree* tree, tree_node** start){
 		} return 0;
 	
 }
-int tree_balance(Tree* tree){
-	if(!tree) return 1;
+err_code tree_balance(Tree* tree){
+	if(!tree) return ERR_NULL_POINTER;
 	tree_balance_(tree,&tree->root);
-	return 0;
+	return OK;
 }
