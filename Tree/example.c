@@ -71,6 +71,7 @@ int main(){
 	tree_walk(tree, treeprt, WK_PRE_ORDER, &i);  //find and print only 10
 	printf("--------------------------------\n");
 	tree_walk(tree2, treeprt2, WK_PRE_ORDER, NULL); //print tree2
-	tree_destroy(tree); //destroy tree and free memory
+	tree_destroy(tree); //destroy trees and free memory
+	tree_destroy(tree2);//
 return 0;	
 }
