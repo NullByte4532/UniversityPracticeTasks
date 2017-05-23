@@ -7,8 +7,7 @@ typedef struct stree_node tree_node;
 typedef struct sTree Tree;
 typedef struct sstack_node stack_node;
 struct stree_node{void* data; tree_node* right; tree_node* left;}; //structure for tree node
-struct sTree{tree_node* root; size_t datalen; cmp_func cmp; stack_node* stack;stack_node* stack_l;}; //structure for tree 'object'
-struct sstack_node { tree_node** data; stack_node* next;}; //structure for node of a list used in a FIFO stack used in balancing.
+struct sTree{tree_node* root; size_t datalen; cmp_func cmp;}; //structure for tree 'object'
 
 enum wk_method {WK_PRE_ORDER, WK_IN_ORDER, WK_POST_ORDER}; //enum defining walk methods
 enum err_code {OK, ERR_NULL_POINTER, ERR_MALLOC_FAIL, ERR_CALLBACK_FAIL, ERR_NOT_FOUND, ERR_UNKNOWN_WK_METHOD};
