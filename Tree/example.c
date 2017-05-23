@@ -38,7 +38,7 @@ int main(){
 	}
 	tree_walk(tree, treeprt, WK_PRE_ORDER, NULL); //print tree
 	tree_balance(tree);  //balance
-	for(j=0; j<100; j++){  //add more numbers and test balancing at different stages
+	for(j=0; j<3000; j++){  //add more numbers and test balancing at different stages
 	i++;
 	tree_addNode(tree, &i);
 	tree_balance(tree);

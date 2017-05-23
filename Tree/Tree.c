@@ -1,6 +1,7 @@
 #include <malloc.h>
 #include <string.h>
 #include "Tree.h"
+#include <math.h>
 Tree* tree_create(size_t datalen, cmp_func cmp){
 	Tree* tmp;
 	tmp=calloc(1, sizeof(Tree));
@@ -151,76 +152,65 @@ err_code tree_walk(Tree* tree,  do_func callback, wk_method walk_method, void* s
 	}
 	
 }
-void tree_rotateLeft(tree_node** cur){
-		
-		tree_node* tmp_node;
-		tmp_node=(*cur)->left;
-		(*cur)->left=tmp_node->right;
-		tmp_node->right=(*cur);
-		(*cur) = tmp_node;
-}
-void tree_rotateRight(tree_node** cur){
-		tree_node* tmp_node;
-		tmp_node=(*cur)->right;
-		(*cur)->right=tmp_node->left;
-		tmp_node->left=(*cur);
-		(*cur) = tmp_node;
-}
 
 
-void push(Tree* tree, tree_node** data){
-	stack_node* tmp;
-	tmp=calloc(1, sizeof(stack_node));
-	tmp->data=data;
-	tmp->next=NULL;
-	if(tree->stack){
-		
-		 tree->stack_l->next=tmp;
-		 tree->stack_l=tmp;
+tree_node* leftRotate(tree_node* n){
+		if(n->right!=NULL){
+			tree_node* right = n->right;
+			n->right=right->right;
+			right->right=right->left;
+			right->left=n->left;
+			n->left=right;
+			void* temp;
+			temp=n->data;
+			n->data=right->data;
+			right->data=temp;
+		}
+		return n;
+}
+
+tree_node* rightRotate(tree_node* n){
+		if(n->left!=NULL){
+			tree_node* left = n->left;
+			n->left=left->left;
+			left->left=left->right;
+			left->right=n->right;
+			n->right=left;
+			void* temp;
+			temp=n->data;
+			n->data=left->data;
+			left->data=temp;
+		}
+		return n;
+}
+
+tree_node* createRightVine(tree_node* root){
+	while(root->left!=NULL){
+		root=rightRotate(root);
 	}
-	else{
-		
-		 tree->stack_l=tmp;
-		 tree->stack=tmp;
+	if(root->right!=NULL) root->right=createRightVine(root->right);
+	return root;
+}
+tree_node* balanceVine(tree_node* root, int nodeCount){
+	int times, i, j;
+	times=(int)(log(nodeCount)/log(2));
+	tree_node* newRoot;
+	newRoot=root;
+	for(i=0; i<times; i++){
+		newRoot=leftRotate(newRoot);;
+		root=newRoot->right;
+		for(j=0; j<nodeCount/2-1; j++){
+			root=leftRotate(root);
+			root=root->right;
+		}
+		nodeCount=nodeCount>>1;
 	}
-}
-tree_node** pop(Tree* tree){
-	tree_node** tmp;
-	stack_node* tmp_;
-	tmp=tree->stack->data;
-	tmp_=tree->stack;
-	tree->stack=tree->stack->next;
-	free(tmp_);
-	return tmp;
-}
-void grabheights(int* hr, int* hl, tree_node** cur){
-	*hr=tree_getHeight_((*cur)->right);
-	*hl=tree_getHeight_((*cur)->left);
-	
-}
-int tree_balance_(Tree* tree, tree_node** start){
-	
-		if(start && *start){
-			tree_getHeight(tree);
-			push(tree,start);
-			while (tree->stack){
-				tree_node** cur;
-				int hr, hl;
-				cur=pop(tree);
-				
-				grabheights(&hr, &hl, cur);
-				while(-(hr-hl)>1){  tree_rotateLeft(cur); grabheights(&hr, &hl, cur);}
-				while((hr-hl)>1){  tree_rotateRight(cur); grabheights(&hr, &hl, cur);}
-				
-				if((*cur)->right)push(tree,&(*cur)->right);
-				if((*cur)->left)push(tree,&(*cur)->left);
-			}
-			
-		} return 0;
-	
+	return newRoot;
 }
 err_code tree_balance(Tree* tree){
 	if(!tree) return ERR_NULL_POINTER;
-	tree_balance_(tree,&tree->root);
+	tree_node* vine;
+	vine=createRightVine(tree->root);
+	tree->root=balanceVine(vine, tree_getNodeCount_(vine));
 	return OK;
 }
