@@ -93,11 +93,15 @@ int tree_getNodeCount(Tree* tree){
 	if(!tree) return -1;
 	return tree_getNodeCount_(tree->root);
 }
-err_code tree_destroy(Tree* tree){
+err_code tree_destroy(Tree** _tree){
 	int ret;
+	Tree* tree;
+	if(!_tree) return ERR_NULL_POINTER;
+	tree=*_tree;
 	if(!tree) return ERR_NULL_POINTER;
 	ret= tree_del_by_ptr_(tree, &tree->root);
 	free(tree);
+	*_tree=NULL;
 	return ret;
 }
 err_code tree_walk_pre(tree_node* ptr, do_func callback, int lvl){
