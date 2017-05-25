@@ -21,7 +21,7 @@ err_code tree_addNode(Tree* tree, void* dataPtr); //Adds a node to an existing t
 err_code tree_delNode(Tree* tree, void* dataPtr); //Deletes an existing node and all its children from a tree. Requires a pointer to tree and a pointer to data. Returns error code
 int tree_getHeight(Tree* tree); //Returns height of the tree. -1 if pointer is null
 int tree_getNodeCount(Tree* tree); //Returns number of nodes in the tree. -1 if pointer is null
-err_code tree_destroy(Tree* tree); //Destroys the tree. Returns error code
+err_code tree_destroy(Tree** tree); //Destroys the tree. Returns error code
 err_code tree_walk(Tree* tree, do_func callback, wk_method walk_method, void* search_for); //Walks the tree.
 /* Requires a pointer to tree, callback function, walk method, pointer to what to look for.
  * If search_for is specified, Tree works as a binary search tree and callback is called on every match. walk_method is ignored.
