@@ -7,19 +7,19 @@
 
 int main(int argc, char *argv[]){
 	assert(argc == 2);
-	int n, m, s;
-	sscanf(argv[1], "%d", &n);
+	int processCount, processCountRemaining, stat;
+	sscanf(argv[1], "%d", &processCount);
 	pid_t pid;
-	m=n;
-	foo: pid=fork();
-	m--;
-	if(pid==0){
-		printf("Started %d\n", n-m);
-		if(m) goto foo;
+	processCountRemaining = processCount;
+	foo: pid = fork();
+	processCountRemaining--;
+	if(pid == 0){
+		printf("Started %d\n", processCount - processCountRemaining);
+		if(processCountRemaining) goto foo;
 
 	}else{
-		waitpid(pid, &s, 0);
-		printf("Finished %d\n", n-m);
+		waitpid(pid, &stat, 0);
+		printf("Finished %d with status %d\n", processCount - processCountRemaining, stat);
 	}
 	return 0;
 

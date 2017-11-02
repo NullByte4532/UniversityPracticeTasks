@@ -1,1 +1,1 @@
-int split(char* src, char** dst, char* del);
+int split(char* source, char** destination, char* delimiter); //Returns number of substrings

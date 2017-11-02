@@ -2,35 +2,35 @@
 #include <malloc.h>
 #include <string.h>
 
-size_t calculateRequiredMemory(int n){
-	int tmp,i;
-	tmp=0;
-	for (i=0; i<n; i++)
-	tmp=2*tmp+1;
-	return (tmp+1)*sizeof(char);
+size_t calculateRequiredMemory(int lineCount){
+	int char_count, i;
+	char_count = 0;
+	for (i = 0; i < lineCount; i++)
+	char_count = 2 * char_count + 1;
+	return (char_count + 1) * sizeof(char);
 }
 
-void generateString(int n){
+void generateString(int lineCount){
 	int i;
-	int l=0;
-	char* s;
-	char c=0;
-	s=malloc(calculateRequiredMemory(n));
-	s[0]=0;
-	for (i=0; i<n; i++){
-		s[l]='a'+c%26;
-		c++;
-		if(l!=0)
-		strncpy(s+l+1, s, l*sizeof(char));		
-		l=l*2+1;
-		s[l]=0;
-		printf("%s\n", s);
+	int length = 0;
+	char* str;
+	char letter_num = 0;
+	str = malloc(calculateRequiredMemory(lineCount));
+	str[0] = 0;
+	for (i = 0; i < lineCount; i++){
+		str[length] = 'a' + letter_num % 26;
+		letter_num++;
+		if(length != 0)
+		strncpy(str + length + 1, str, length * sizeof(char));		
+		length = length * 2 + 1;
+		str[length] = 0;
+		printf("%s\n", str);
 	}
 
 }
 int main(){
-int n;
-scanf("%d", &n);
-generateString(n);
-return 0;
+	int lineCount;
+	scanf("%d", &lineCount);
+	generateString(lineCount);
+	return 0;
 }

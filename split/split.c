@@ -1,36 +1,36 @@
 #include <string.h>
 #include "split.h"
-int split(char* src, char** dst, char* del){
-	if (!(src&&dst&&del)) return -1;
-	int n=0, i=0, j=0, k=0;
-	int l;
-	l=strlen(del);
-	while (src[i]!=0){
-		if (src[i]==del[j]){
-			j++;
-			if(j==l){
-				j=0;
-				dst[n][k]=0;
-				n++;
-				k=0;
+int split(char* source, char** destination, char* delimiter){
+	if (!(source && destination && delimiter)) return -1;
+	int substring_number = 0, source_index = 0, delimiter_index = 0, substring_index = 0;
+	int delimiterLength;
+	delimiterLength = strlen(delimiter);
+	while (source[source_index] != 0){
+		if (source[source_index] == delimiter[delimiter_index]){
+			delimiter_index++;
+			if(delimiter_index == delimiterLength){
+				delimiter_index = 0;
+				destination[substring_number][substring_index] = 0;
+				substring_number++;
+				substring_index = 0;
 			}
 		}else{
 			if(j){
-				strncpy(dst[n], del, j);
-				k=k+j;
-				j=0;
+				strncpy(destination[substring_number], delimiter, delimiter_index);
+				substring_index = substring_index + delimiter_index;
+				delimiter_index = 0;
 				
 			}
-			dst[n][k]=src[i];
-			k++;
+			destination[substring_number][substring_index] = source[source_index];
+			substring_index++;
 			
 		
 		}
-		i++;
+		source_index++;
 	}
 
-	dst[n][k]=0;
-	n++;
+	destination[substring_number][substring_index] = 0;
+	substring_number++;
 
-	return n;
+	return substring_number;
 }
