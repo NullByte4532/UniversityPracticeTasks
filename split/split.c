@@ -15,7 +15,7 @@ int split(char* source, char** destination, char* delimiter){
 				substring_index = 0;
 			}
 		}else{
-			if(j){
+			if(delimiter_index){
 				strncpy(destination[substring_number], delimiter, delimiter_index);
 				substring_index = substring_index + delimiter_index;
 				delimiter_index = 0;
