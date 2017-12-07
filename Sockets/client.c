@@ -90,20 +90,24 @@ Map* generateMap(int map_h, int map_w){
 	return map;
 
 }
-void redrawScreen(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents){
+void redrawScreen(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int turn){
 	int i;
 	printf("\033[2J");
 	drawMap(map->field, map->w, map->h, code);
 	printf("\e[31m");
+	if(turn==1) printf("\e[5m");
 	if(code==1) printf("\e[1m");
-	printf("\033[1;0H1\033[1;4H%s\033[1;20H%s\033[1;36H%d\e[21m", lobbyInfo->name1, jobTitles[lobbyInfo->job[0]], lobbyInfo->health[0]);
+	printf("\033[1;0H1\033[1;4H%s\033[1;20H%s\033[1;36H%d\e[21m\e[25m", lobbyInfo->name1, jobTitles[lobbyInfo->job[0]], lobbyInfo->health[0]);
+	if(turn==2) printf("\e[5m");
 	if(code==2) printf("\e[1m");
-	printf("\033[2;0H2\033[2;4H%s\033[2;20H%s\033[2;36H%d\e[21m", lobbyInfo->name2, jobTitles[lobbyInfo->job[1]], lobbyInfo->health[1]);
+	printf("\033[2;0H2\033[2;4H%s\033[2;20H%s\033[2;36H%d\e[21m\e[25m", lobbyInfo->name2, jobTitles[lobbyInfo->job[1]], lobbyInfo->health[1]);
 	printf("\e[34m");
+	if(turn==3) printf("\e[5m");
 	if(code==3) printf("\e[1m");
-	printf("\033[3;0H3\033[3;4H%s\033[3;20H%s\033[3;36H%d\e[21m", lobbyInfo->name3, jobTitles[lobbyInfo->job[2]], lobbyInfo->health[2]);
+	printf("\033[3;0H3\033[3;4H%s\033[3;20H%s\033[3;36H%d\e[21m\e[25m", lobbyInfo->name3, jobTitles[lobbyInfo->job[2]], lobbyInfo->health[2]);
+	if(turn==4) printf("\e[5m");
 	if(code==4) printf("\e[1m");
-	printf("\033[4;0H4\033[4;4H%s\033[4;20H%s\033[4;36H%d\e[21m", lobbyInfo->name4, jobTitles[lobbyInfo->job[3]], lobbyInfo->health[3]);
+	printf("\033[4;0H4\033[4;4H%s\033[4;20H%s\033[4;36H%d\e[21m\e[25m", lobbyInfo->name4, jobTitles[lobbyInfo->job[3]], lobbyInfo->health[3]);
 	printf("\e[39m");
 	for(i=0; i<4; i++) printf("\033[%d;40H|", i+1);
 	printf("\e[2m");
@@ -124,10 +128,10 @@ void receiveLobbyInfo(int conn, LobbyInfo* lobbyInfo){
 
 }
 
-void doMove(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int conn){
+void doMove(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int conn, int turn){
 	int tmp=-1;
 	while(tmp!=0&&tmp!=1&&tmp!=2&&tmp!=3){
-		redrawScreen(map, lobbyInfo, code, jobTitles, lastEvents);
+		redrawScreen(map, lobbyInfo, code, jobTitles, lastEvents, turn);
 		printf("\033[10;30HCoose direction:");
 		if(lobbyInfo->y[code-1]>0) printf("\033[12;30H1) Up");
 		if(lobbyInfo->y[code-1]<map->h-1) printf("\033[13;30H2) Down");
@@ -188,10 +192,10 @@ int square(int x){
 int distance(int a, int b, LobbyInfo* lobbyInfo){
 	return square(lobbyInfo->x[a]-lobbyInfo->x[b])+square(lobbyInfo->y[a]-lobbyInfo->y[b]);
 }
-void doAttack(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int conn, int lasttmp, Skill type){
+void doAttack(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int conn, int lasttmp, Skill type, int turn){
 	int tmp=-1;
 	while(tmp!=0&&tmp!=1&&tmp!=2&&tmp!=3){
-		redrawScreen(map, lobbyInfo, code, jobTitles, lastEvents);
+		redrawScreen(map, lobbyInfo, code, jobTitles, lastEvents, turn);
 		printf("\033[10;30HChoose target:");
 		if(distance(code-1, 0, lobbyInfo)<=getRange(type)&&(type!=S_ARCHER_SHOOT||distance(code-1, 0, lobbyInfo)>2)) printf("\033[12;30H1) 1");
 		if(distance(code-1, 1, lobbyInfo)<=getRange(type)&&(type!=S_ARCHER_SHOOT||distance(code-1, 1, lobbyInfo)>2)) printf("\033[13;30H2) 2");
@@ -214,10 +218,10 @@ void doAttack(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char*
 		exit(-1);
 	}
 }
-void doAction(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int conn, Job job){
+void doAction(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int conn, Job job, int turn){
 	int tmp=-1;
 	while(tmp!=0&&tmp!=1&&tmp!=2){
-		redrawScreen(map, lobbyInfo, code, jobTitles, lastEvents);
+		redrawScreen(map, lobbyInfo, code, jobTitles, lastEvents, turn);
 		printf("\033[10;30HChoose action:");
 		switch(job){
 			case J_SWORDSMAN:
@@ -239,8 +243,8 @@ void doAction(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char*
 		tmp--;
 	}
 	if(lobbyInfo->job[code-1]==J_SWORDSMAN&&tmp==1) doShield(conn);
-	else if(tmp==2) doMove(map, lobbyInfo, code, jobTitles, lastEvents, conn);
-	else doAttack(map, lobbyInfo, code, jobTitles, lastEvents, conn, tmp, job*2+tmp);
+	else if(tmp==2) doMove(map, lobbyInfo, code, jobTitles, lastEvents, conn, turn);
+	else doAttack(map, lobbyInfo, code, jobTitles, lastEvents, conn, tmp, job*2+tmp, turn);
 	
 }	
 int main(int argc , char *argv[])
@@ -287,23 +291,26 @@ int main(int argc , char *argv[])
 		exit(-1);
 	}
 	config(&code, socket_desc, &job, jobTitles);
+	printf("\033[2J");
+	printf("\033[10;20HWaiting for other players...");
+	fflush(stdout);
 	map=generateMap(10,20);
 	receiveMap(map, socket_desc);
 	receiveLobbyInfo(socket_desc, &lobbyInfo);
-	redrawScreen(map, &lobbyInfo, code, jobTitles, lastEvents);
 	do{
 		if( recv(socket_desc, &turn , sizeof(int) , 0) < 0)
 		{
 			puts("Communication Error");
 			exit(-1);
 		}
+		redrawScreen(map, &lobbyInfo, code, jobTitles, lastEvents, turn);
 		for(i=0; i<3; i++){
 			if(turn==code){
-				doAction(map, &lobbyInfo, code, jobTitles, lastEvents, socket_desc, job);
+				doAction(map, &lobbyInfo, code, jobTitles, lastEvents, socket_desc, job, turn);
 			}
 			receiveMap(map, socket_desc);
 			receiveLobbyInfo(socket_desc, &lobbyInfo);
-			redrawScreen(map, &lobbyInfo, code, jobTitles, lastEvents);
+			redrawScreen(map, &lobbyInfo, code, jobTitles, lastEvents, turn);
 			if(lobbyInfo.health[code-1]<=0) exit(0);
 		}
 	}while(turn>0);

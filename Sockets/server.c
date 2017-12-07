@@ -257,25 +257,27 @@ int main(int argc , char *argv[])
 	sendLobbyInfo(players, map);
 	while((players[0].health>0||players[1].health>0)&&(players[2].health>0||players[3].health>0)){
 		turn++;
-		sendAll(turn, players);
-		for(i=0; i<3; i++){
-			int act, arg;
-			if( recv(players[turn-1].conn, &arg , sizeof(int) , 0) < 0)
-			{
-				puts("Failed to receive action parameter");
-				exit(-1);
+		if(players[turn-1].connected){
+			sendAll(turn, players);
+			for(i=0; i<3; i++){
+				int act, arg;
+				if( recv(players[turn-1].conn, &arg , sizeof(int) , 0) < 0)
+				{
+					puts("Failed to receive action parameter");
+					exit(-1);
+				}
+				if( recv(players[turn-1].conn, &act , sizeof(int) , 0) < 0)
+				{
+					puts("Failed to receive action id");
+					exit(-1);
+				}
+				performAction(players, map, turn, act, arg);
+				checkDead(players);
+				clearMap(map);
+				mapPlayers(players, map);
+				sendMap(players, map);
+				sendLobbyInfo(players, map);
 			}
-			if( recv(players[turn-1].conn, &act , sizeof(int) , 0) < 0)
-			{
-				puts("Failed to receive action id");
-				exit(-1);
-			}
-			performAction(players, map, turn, act, arg);
-			checkDead(players);
-			clearMap(map);
-			mapPlayers(players, map);
-			sendMap(players, map);
-			sendLobbyInfo(players, map);
 		}
 		turn=turn%4;
 	}
