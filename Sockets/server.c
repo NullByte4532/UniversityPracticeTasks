@@ -198,6 +198,10 @@ void performAction(client_info* players, Map* map, int turn, int act, int arg){
 	}
 	
 }
+void resetShields(client_info* players){
+	int i;
+	for(i=0; i<4; i++) if(players[i].shielded)players[i].shielded=0;
+}
 void checkDead(client_info* players){
 	int i;
 	for(i=0; i<4; i++) if(players[i].health<=0){
@@ -255,10 +259,11 @@ int main(int argc , char *argv[])
 	puts("Sending map to clients");
 	sendMap(players, map);
 	sendLobbyInfo(players, map);
-	while((players[0].health>0||players[1].health>0)&&(players[2].health>0||players[3].health>0)){
+	while((players[0].connected||players[1].connected)&&(players[2].connected||players[3].connected)){
 		turn++;
 		if(players[turn-1].connected){
 			sendAll(turn, players);
+			resetShields(players);
 			for(i=0; i<3; i++){
 				int act, arg;
 				if( recv(players[turn-1].conn, &arg , sizeof(int) , 0) < 0)
