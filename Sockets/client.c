@@ -31,6 +31,12 @@ void drawMap(char** map, int map_w, int map_h, char code){
 
 
 }
+void destroyMap(Map* map){
+	int i;
+	for (i=0; i<map->h; i++) free(map->field[i]);
+	free(map->field);
+	free(map);
+}
 void config(char* code, int conn, Job* job, char** jobTitles){
 	int tmp=-1;
 	char name[16];
@@ -251,7 +257,7 @@ int main(int argc , char *argv[])
 {
 	int socket_desc, i;
 	struct sockaddr_in server;
-	char *message , server_reply[200];
+	char server_reply[200];
 	char code;
 	LobbyInfo lobbyInfo;
 	Job job;
@@ -311,9 +317,13 @@ int main(int argc , char *argv[])
 			receiveMap(map, socket_desc);
 			receiveLobbyInfo(socket_desc, &lobbyInfo);
 			redrawScreen(map, &lobbyInfo, code, jobTitles, lastEvents, turn);
-			if(lobbyInfo.health[code-1]<=0) exit(0);
+			if(lobbyInfo.health[code-1]<=0){
+				turn=0;
+				break;
+			}
 		}
 	}while(turn>0);
-
+	close(socket_desc);
+	destroyMap(map);
 	return 0;
 }

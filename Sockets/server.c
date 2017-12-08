@@ -210,6 +210,14 @@ void checkDead(client_info* players){
 	}
 
 }
+void closeComms(client_info* players){
+	int i;
+	for(i=0; i<4; i++) if(players[i].connected){
+		close(players[i].conn);
+		players[i].connected=0;
+	}
+
+}
 int main(int argc , char *argv[])
 {
 	int socket_desc, err, client_id, i;
@@ -286,5 +294,7 @@ int main(int argc , char *argv[])
 		}
 		turn=turn%4;
 	}
+	destroyMap(map);
+	closeComms(players);
 	return 0;
 }
