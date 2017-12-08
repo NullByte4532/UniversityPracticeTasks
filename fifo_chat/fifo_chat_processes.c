@@ -26,10 +26,7 @@ int main(int argc, char **argv){
 		if (pid == 0)
 		{	input=calloc(STRING_BUF_SIZE, sizeof(char*));
 			int fd_1;
-			if ()
 			fd_1= open(atoi(argv[1]) == 0 ? filename_1 : filename_2, O_WRONLY);
-		
-
 			while (1)
 			{
 				fgets(input, STRING_BUF_SIZE-1, stdin);
@@ -43,7 +40,7 @@ int main(int argc, char **argv){
 			}
 		}else{
 			int fd_2;
-			fd_1= open(atoi(argv[1]) == 0 ? filename_2 : filename_1, 'r');
+			fd_2= open(atoi(argv[1]) == 0 ? filename_2 : filename_1, 'r');
 			input=calloc(STRING_BUF_SIZE, sizeof(char*));
 			while (1)
 			{
