@@ -1,3 +1,2 @@
-pisos:2
-popka:1
+tarelka:16
 exit:1

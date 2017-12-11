@@ -8,12 +8,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <malloc.h>
+#include <sys/sem.h>
 #include "config.h"
 int main(int argc, char **argv){
 	char * line = NULL;
 	int i, num, ssize, time;
 	int fd_in;
-	if (argc!=2){
+	int desc;
+	int semid;
+	struct sembuf sb;
+	if (argc!=3){
 		printf("Error: Wrong number of arguments\n");
 		exit(-1);
 	}
@@ -23,9 +27,20 @@ int main(int argc, char **argv){
 		printf("Error: No permission to create or access FIFO.\n");
 		exit(-1);
 	}
+	desc=ftok(argv[1], 45);
+	semid=semget(desc, 0, S_IRUSR|S_IWUSR|IPC_CREAT);
+	sb.sem_op=1;
+	sb.sem_flg=0;
+	sb.sem_num=0;
+	if (semctl(semid, 0, SETVAL, atoi(argv[2])) == -1) {
+		perror("Error: semctl failed");
+		exit(-1);
+	};
 	fd_in= open(argv[1], 'r');
 	line=calloc(MAX_CHARS_ARG, sizeof(char*));
 	while (1) {
+		sb.sem_op=1;
+		semop(semid, &sb, 1);
 		read(fd_in, &ssize, sizeof(ssize));
 		read(fd_in, line, (ssize)*sizeof(char));
 		read(fd_in, &num, sizeof(int));

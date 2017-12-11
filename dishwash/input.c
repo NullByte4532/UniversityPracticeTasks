@@ -9,6 +9,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 #include "../split/split.h"
+#include <sys/sem.h>
 #include "config.h"
 
 void remove_newline(char* string){
@@ -23,17 +24,24 @@ int main(int argc, char **argv){
 	ssize_t read;
 	char **args;
 	int i, argsCount, ssize;
-
+	int desc;
+	int semid;
+	struct sembuf sb;
 	if (argc!=3){
 		printf("Error: Wrong number of arguments\n");
 		exit(-1);
 	}
-	filename_1=argv[2];
 	if (access(filename_1, F_OK)==-1 && 
 		mknod(filename_1, S_IFIFO | 0666, 0) < 0)
 	{
 		exit(-1);
 	}
+	filename_1=argv[2];
+	desc=ftok(filename_1, 45);
+	semid=semget(desc, 0, S_IRUSR|S_IWUSR|IPC_CREAT);
+	sb.sem_op=-1;
+	sb.sem_flg=0;
+	sb.sem_num=0;
 	fd_out = open(filename_1, O_WRONLY);
 	fd_in = fopen(argv[1], "r");
 	if (fd_in == NULL){
@@ -52,6 +60,10 @@ int main(int argc, char **argv){
 			printf("Error: Wrong input file format.\n");
 			exit(-1);
 		}
+		int k;
+		k=semctl(semid,0,GETVAL,0);
+		printf("Waiting for sem, now %d\n", k);
+		semop(semid, &sb, 1);
 		printf("Sending %s to conveyor input\n", args[0]);
 		ssize=strlen(args[0]);
 		write(fd_out, &ssize, sizeof(int));
