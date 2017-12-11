@@ -6,6 +6,24 @@
 #include <pthread.h>	
 #include <stdlib.h>
 #include "config.h"
+
+void sendstuff(int conn, void* stuff, size_t size){
+	if( send(conn , stuff , size , 0) < 0)
+	{
+		puts("Communication Error");
+		exit(-1);
+	}
+
+}
+
+void receivestuff(int conn, void* stuff, size_t size){
+	if( recv(conn, stuff , size , 0) < 0)
+	{
+		puts("Communication Error");
+		exit(-1);
+	}
+}
+
 Map* generateMap(int map_h, int map_w){
 	Map* map;
 	int i;
@@ -76,18 +94,10 @@ void* waitForConnection(void *arg){
 	}
 	puts("Connection accepted");
 	message = "INITCONFIG";
-	write(clientInfo->conn , message , strlen(message)+1);
-	if( recv(clientInfo->conn, clientInfo->name , 16 , 0) < 0)
-	{
-		puts("Failed to receive client name");
-		exit(-1);
-	}
-	if( recv(clientInfo->conn, &clientInfo->job , sizeof(Job) , 0) < 0)
-	{
-		puts("Failed to receive client job pick");
-		exit(-1);
-	}
-	write(clientInfo->conn , &clientInfo->code , 1);
+	sendstuff(clientInfo->conn , message , strlen(message)+1);
+	receivestuff(clientInfo->conn, clientInfo->name , 16);
+	receivestuff(clientInfo->conn, &clientInfo->job , sizeof(Job));
+	sendstuff(clientInfo->conn , &clientInfo->code , 1);
 	setSkills(clientInfo);
 	clientInfo->health=100;
 	clientInfo->connected=1;
@@ -125,7 +135,7 @@ void sendMap(client_info* players, Map* map){
 	int i, j;
 	for(j=0; j<4; j++)
 	for(i=0; i<map->h; i++)
-	if(players[j].connected) write(players[j].conn , map->field[i] , map->w);
+	if(players[j].connected) sendstuff(players[j].conn , map->field[i] , map->w);
 
 }
 void sendLobbyInfo(client_info* players, Map* map){
@@ -141,12 +151,12 @@ void sendLobbyInfo(client_info* players, Map* map){
 		lobbyInfo.x[i]=players[i].x;
 		lobbyInfo.y[i]=players[i].y;
 	}
-	for(i=0; i<4; i++) if(players[i].connected) write(players[i].conn , &lobbyInfo , sizeof(LobbyInfo));
+	for(i=0; i<4; i++) if(players[i].connected) sendstuff(players[i].conn , &lobbyInfo , sizeof(LobbyInfo));
 
 }
 void sendAll(int data, client_info* players){
 	int i;
-	for(i=0; i<4; i++) if(players[i].connected) write(players[i].conn , &data , sizeof(int));
+	for(i=0; i<4; i++) if(players[i].connected) sendstuff(players[i].conn , &data , sizeof(int));
 
 }
 int damage(Job job, Skill skill, int shielded){
@@ -169,6 +179,35 @@ int damage(Job job, Skill skill, int shielded){
 	}
 
 
+}
+int getRange(Skill type){
+	switch(type){
+		case S_SWORDSMAN_ATTACK:
+			return S_SWORDSMAN_ATTACK_RANGE;
+		case S_ARCHER_ATTACK:
+			return S_ARCHER_ATTACK_RANGE;
+		case S_ARCHER_SHOOT:
+			return S_ARCHER_SHOOT_RANGE;
+		case S_MAGE_HEAL:
+			return S_MAGE_HEAL_RANGE;
+		case S_MAGE_POISON:
+			return S_MAGE_POISON_RANGE;
+	}
+
+}
+int square(int x){
+	return x*x;
+}
+int distance(int a, int b, client_info* players){
+	return square(players[a].x-players[b].x)+square(players[a].y-players[b].y);
+}
+int validateAction(client_info* players, Map* map, int turn, int act, int arg){
+		if(act<0) return 1;
+		Skill type;
+		type=players[turn-1].skills[act];
+		if(type==S_SWORDSMAN_SHIELD) return 1;
+		if(distance(turn-1, arg, players)<=getRange(type)&&(type!=S_ARCHER_SHOOT||distance(turn-1, arg, players)>2)) return 1;
+		return 0;
 }
 void performAction(client_info* players, Map* map, int turn, int act, int arg){
 		
@@ -274,20 +313,14 @@ int main(int argc , char *argv[])
 			resetShields(players);
 			for(i=0; i<3; i++){
 				int act, arg;
-				if( recv(players[turn-1].conn, &arg , sizeof(int) , 0) < 0)
-				{
-					puts("Failed to receive action parameter");
-					exit(-1);
+				receivestuff(players[turn-1].conn, &arg , sizeof(int));
+				receivestuff(players[turn-1].conn, &act , sizeof(int));
+				if(validateAction(players, map, turn, act, arg)){
+					performAction(players, map, turn, act, arg);
+					checkDead(players);
+					clearMap(map);
+					mapPlayers(players, map);
 				}
-				if( recv(players[turn-1].conn, &act , sizeof(int) , 0) < 0)
-				{
-					puts("Failed to receive action id");
-					exit(-1);
-				}
-				performAction(players, map, turn, act, arg);
-				checkDead(players);
-				clearMap(map);
-				mapPlayers(players, map);
 				sendMap(players, map);
 				sendLobbyInfo(players, map);
 			}

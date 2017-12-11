@@ -3,8 +3,24 @@
 #include<string.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
+#include <unistd.h>
 #include "config.h"
+void sendstuff(int conn, void* stuff, size_t size){
+	if( send(conn , stuff , size , 0) < 0)
+	{
+		puts("Communication Error");
+		exit(-1);
+	}
 
+}
+
+void receivestuff(int conn, void* stuff, size_t size){
+	if( recv(conn, stuff , size , 0) < 0)
+	{
+		puts("Communication Error");
+		exit(-1);
+	}
+}
 void drawMap(char** map, int map_w, int map_h, char code){
 	int x, y;
 	printf("\033[19;0H");
@@ -60,25 +76,13 @@ void config(char* code, int conn, Job* job, char** jobTitles){
 		tmp--;
 	}
 	*job=tmp;
-	if( send(conn , job , sizeof(Job) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
-	if( recv(conn, code , 1 , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	sendstuff(conn , job , sizeof(Job));
+	receivestuff(conn, code , 1);
 }
 void receiveMap(Map* map, int conn){
 	int i;
 	for(i=0; i<map->h; i++){
-		if( recv(conn, map->field[i] , map->w , 0) < 0)
-		{
-		puts("Communication Error");
-		exit(-1);
-		}
+		receivestuff(conn, map->field[i] , map->w);
 	}
 	
 
@@ -125,11 +129,7 @@ void redrawScreen(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, c
 }
 void receiveLobbyInfo(int conn, LobbyInfo* lobbyInfo){
 
-	if( recv(conn, lobbyInfo , sizeof(LobbyInfo) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	receivestuff(conn, lobbyInfo , sizeof(LobbyInfo));
 
 
 }
@@ -151,44 +151,28 @@ void doMove(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** 
 		if(tmp==2 && lobbyInfo->x[code-1]<=0)tmp=-1;
 		if(tmp==3 && lobbyInfo->x[code-1]>=map->w-1)tmp=-1;
 	}
-	if( send(conn , &tmp , sizeof(int) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	sendstuff(conn , &tmp , sizeof(int));
 	tmp=-1;
-	if( send(conn , &tmp , sizeof(int) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	sendstuff(conn , &tmp , sizeof(int));
 }
 void doShield(int conn){
 	int tmp;
-	if( send(conn , &tmp , sizeof(int) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	sendstuff(conn , &tmp , sizeof(int));
 	tmp=1;
-	if( send(conn , &tmp , sizeof(int) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	sendstuff(conn , &tmp , sizeof(int));
 }
 int getRange(Skill type){
 	switch(type){
 		case S_SWORDSMAN_ATTACK:
-			return 4;
+			return S_SWORDSMAN_ATTACK_RANGE;
 		case S_ARCHER_ATTACK:
-			return 2;
+			return S_ARCHER_ATTACK_RANGE;
 		case S_ARCHER_SHOOT:
-			return 25;
+			return S_ARCHER_SHOOT_RANGE;
 		case S_MAGE_HEAL:
-			return 9;
+			return S_MAGE_HEAL_RANGE;
 		case S_MAGE_POISON:
-			return 16;
+			return S_MAGE_POISON_RANGE;
 	}
 
 }
@@ -213,16 +197,8 @@ void doAttack(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char*
 		if(distance(code-1, tmp, lobbyInfo)>getRange(type)||(type==S_ARCHER_SHOOT&&distance(code-1, tmp, lobbyInfo)<=2))tmp=-1;
 
 	}
-	if( send(conn , &tmp , sizeof(int) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
-	if( send(conn , &lasttmp , sizeof(int) , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	sendstuff(conn , &tmp , sizeof(int));
+	sendstuff(conn , &lasttmp , sizeof(int));
 }
 void doAction(Map* map, LobbyInfo* lobbyInfo, char code, char** jobTitles, char** lastEvents, int conn, Job job, int turn){
 	int tmp=-1;
@@ -287,11 +263,7 @@ int main(int argc , char *argv[])
 	 
 	puts("Connected\n");
 
-	if( recv(socket_desc, server_reply , 200 , 0) < 0)
-	{
-		puts("Communication Error");
-		exit(-1);
-	}
+	receivestuff(socket_desc, server_reply , 200);
 	if(strcmp(server_reply, "INITCONFIG")){
 		puts("Protocol Error");
 		exit(-1);
@@ -304,11 +276,7 @@ int main(int argc , char *argv[])
 	receiveMap(map, socket_desc);
 	receiveLobbyInfo(socket_desc, &lobbyInfo);
 	do{
-		if( recv(socket_desc, &turn , sizeof(int) , 0) < 0)
-		{
-			puts("Communication Error");
-			exit(-1);
-		}
+		receivestuff(socket_desc, &turn , sizeof(int));
 		redrawScreen(map, &lobbyInfo, code, jobTitles, lastEvents, turn);
 		for(i=0; i<3; i++){
 			if(turn==code){

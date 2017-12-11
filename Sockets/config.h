@@ -15,3 +15,9 @@ typedef struct{
 	int y[4];
 	Job job[4];
 } LobbyInfo;
+
+#define S_SWORDSMAN_ATTACK_RANGE 4
+#define S_ARCHER_ATTACK_RANGE 2
+#define S_ARCHER_SHOOT_RANGE 25
+#define S_MAGE_HEAL_RANGE 9
+#define S_MAGE_POISON_RANGE 16
