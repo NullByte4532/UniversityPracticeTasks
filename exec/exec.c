@@ -12,18 +12,35 @@
 void remove_newline(char* string){
 	if (string[strlen(string)-1]=='\n') string[strlen(string)-1]=0;
 }
+int lineCount(FILE* fp){
+	char ch;
+	int lines;
+	while(!feof(fp))
+	{
+		ch = fgetc(fp);
+		if(ch == '\n')
+		{
+			lines++;
+		}
+	}
+	rewind(fp);
+	return lines;
+}
 void run(FILE* input_file){
 	char string[MAX_CHARS];
 	char **args;
-	int i, argsCount;
+	int i, argsCount, commandCount;
 	args = malloc(MAX_ARGS * sizeof(char*));
 	for(i = 0; i < MAX_ARGS; i++) args[i] = malloc(MAX_CHARS_ARG * sizeof(char));
-	pid_t pid = 2;
+	pid_t* pid;
+	commandCount=lineCount(input_file);
+	pid=calloc(commandCount, sizeof(pid_t));
+	i=0;
 	while(fgets(string, MAX_CHARS, input_file) != NULL){
 		remove_newline(string);
 		argsCount = split(string, args, " ");
-		pid = fork();
-		if(pid == 0){
+		pid[i] = fork();
+		if(pid[i] == 0){
 			fclose(input_file);
 			args[argsCount] = 0;
 			execvp(args[0], args);
@@ -32,8 +49,9 @@ void run(FILE* input_file){
 			exit(0);
 			assert(0);
 		}
-		waitpid(pid, NULL, 0);
+		i++;
 	}
+	for(i=0; i<commandCount; i++) waitpid(pid[i], NULL, 0);
 	fclose(input_file);
 	for(i = 0; i < MAX_ARGS; i++) free(args[i]);
 	free(args);
