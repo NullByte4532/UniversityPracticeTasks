@@ -63,11 +63,11 @@ int main(int argc, char** argv){
 	int threadCount;
 	int msize;
 	int i;
-	float min, max;
 	if(argc!=3){
 		printf("Error: Wrong number of arguments\n");
 		exit(-1);
 	}
+	srand(453212);
 	msize = atoi(argv[1]);
 	threadCount = atoi(argv[2]);
 	float** A = calloc(msize, sizeof(float*));
@@ -80,10 +80,7 @@ int main(int argc, char** argv){
 	}
 	pthread_t* threads = calloc(threadCount, sizeof(pthread_t));
 	TaskData* taskData = calloc(threadCount, sizeof(TaskData));
-	printf("Enter min and max values: ");
-	fflush(stdout);
-	scanf("%f %f", &min, &max);
-	randInitMatrices(A, B, msize, min, max);
+	randInitMatrices(A, B, msize, 1.0, 100.0);
 	printf("A:\n**************************\n");
 	printMatrix(A, msize);
 	printf("**************************\nB:\n**************************\n");
@@ -100,7 +97,7 @@ int main(int argc, char** argv){
 		pthread_create(&(threads[i]), NULL, &worker, &taskData[i]);
 	}
 	
-	for(i = 0; i < msize; i++) {
+	for(i = 0; i < threadCount; i++) {
 		pthread_join(threads[i], NULL);
 	}
 	printf("C:\n**************************\n");
