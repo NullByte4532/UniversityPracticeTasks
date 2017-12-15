@@ -8,7 +8,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define MAX_THREAD_NUM 4
+#define MAX_THREAD_NUM 2
 
 
 typedef struct
