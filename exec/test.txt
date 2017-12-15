@@ -1,4 +1,4 @@
-ls -la
-echo hues
-sleep 10
-pwd
+0 ls -la
+5 echo hues
+0 sleep 20
+7 pwd

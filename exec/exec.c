@@ -43,7 +43,8 @@ void run(FILE* input_file){
 		if(pid[i] == 0){
 			fclose(input_file);
 			args[argsCount] = 0;
-			execvp(args[0], args);
+			sleep(atoi(args[0]));
+			execvp(args[1], args+1);
 			for(i = 0; i < MAX_ARGS; i++) free(args[i]);
 			free(args);
 			exit(0);
