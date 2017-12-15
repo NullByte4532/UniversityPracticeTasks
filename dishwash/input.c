@@ -31,12 +31,12 @@ int main(int argc, char **argv){
 		printf("Error: Wrong number of arguments\n");
 		exit(-1);
 	}
+	filename_1=argv[2];
 	if (access(filename_1, F_OK)==-1 && 
 		mknod(filename_1, S_IFIFO | 0666, 0) < 0)
 	{
 		exit(-1);
 	}
-	filename_1=argv[2];
 	desc=ftok(filename_1, 45);
 	semid=semget(desc, 0, S_IRUSR|S_IWUSR|IPC_CREAT);
 	sb.sem_op=-1;

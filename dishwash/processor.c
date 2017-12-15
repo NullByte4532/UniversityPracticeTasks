@@ -121,7 +121,6 @@ void run(hashlist* processingTimes, char* fn_in, char* fn_out, char* action, int
 	int desc_in, desc_out;
 	int semid_in, semid_out;
 	struct sembuf sb;
-	printf("Hello\n");
 	fd_in= open(fn_in, 'r');
 	fd_out= open(fn_out, O_WRONLY);
 	desc_in=ftok(fn_in, 45);
@@ -132,14 +131,10 @@ void run(hashlist* processingTimes, char* fn_in, char* fn_out, char* action, int
 	sb.sem_num=0;
 	line=calloc(MAX_CHARS_ARG, sizeof(char*));
 	exit_hash=hash("exit");
-	printf("inputBufSize=%d\n", inputBufSize);
 	if (semctl(semid_in, 0, SETVAL, inputBufSize) == -1) {
 		perror("Error: semctl failed");
 		exit(-1);
 	};
-	int k;
-	k=semctl(semid_in,0,GETVAL,0);
-	printf("set %d.\n", k);
 	while (1) {
 		read(fd_in, &ssize, sizeof(ssize));
 		read(fd_in, line, (ssize)*sizeof(char));
@@ -158,7 +153,7 @@ void run(hashlist* processingTimes, char* fn_in, char* fn_out, char* action, int
 			write(fd_out, &ssize, sizeof(int));
 			write(fd_out,line,ssize*sizeof(char));
 			write(fd_out, &one, sizeof(int));
-			printf("Sent down the conveyor.\n");
+			printf("Sent down the conveyor from %s.\n", action);
 		}
 		if(cur_hash==exit_hash){
 			printf("Stopping %s machine.\n", action); 
