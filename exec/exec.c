@@ -41,7 +41,6 @@ void run(FILE* input_file){
 		argsCount = split(string, args, " ");
 		pid[i] = fork();
 		if(pid[i] == 0){
-			fclose(input_file);
 			args[argsCount] = 0;
 			sleep(atoi(args[0]));
 			execvp(args[1], args+1);

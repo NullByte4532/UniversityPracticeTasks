@@ -11,7 +11,7 @@
 #include <sys/sem.h>
 #include "../split/split.h"
 #include "config.h"
-
+#define LUCKY_NUMBER 45
 void remove_newline(char* string){
 	if (string[strlen(string)-1]=='\n') string[strlen(string)-1]=0;
 }
@@ -123,9 +123,9 @@ void run(hashlist* processingTimes, char* fn_in, char* fn_out, char* action, int
 	struct sembuf sb;
 	fd_in= open(fn_in, 'r');
 	fd_out= open(fn_out, O_WRONLY);
-	desc_in=ftok(fn_in, 45);
+	desc_in=ftok(fn_in, LUCKY_NUMBER);
 	semid_in=semget(desc_in, 0, S_IRUSR|S_IWUSR|IPC_CREAT);
-	desc_out=ftok(fn_out, 45);
+	desc_out=ftok(fn_out, LUCKY_NUMBER);
 	semid_out=semget(desc_out, 0, S_IRUSR|S_IWUSR|IPC_CREAT);
 	sb.sem_flg=0;
 	sb.sem_num=0;
