@@ -4,11 +4,10 @@
 #include <cstdlib>
 #include <limits>
 
-#define ACCURANCY 2
 
 using std::istream;
 using std::ostream;
-using std::string;
+
 
 class Vector {
 	
