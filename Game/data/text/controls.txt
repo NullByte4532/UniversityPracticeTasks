@@ -1,0 +1,13 @@
+	CONTROLS:
+	-----------------------------
+	W,A,S,D      Move
+	F            Toggle flashlight
+	E            Shoot
+	C            Toggle Menu(Console)
+	SPACE        Brake
+
+
+
+
+	-----------------------------
+
