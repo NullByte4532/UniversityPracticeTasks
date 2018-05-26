@@ -4,6 +4,7 @@
 
 
 float Vector::length() const {
+	// можно просто sqrt(x * x + ... );
 	return sqrt(this->x*this->x+this->y*this->y+this->z*this->z);
 }
 
@@ -57,6 +58,9 @@ Vector& Vector::operator/=(float k) {
 
 bool Vector::is_null() const { 
 	float epsilon = std::numeric_limits<float>::epsilon();
+	
+	// std::abs?
+	// http://ru.cppreference.com/w/cpp/types/numeric_limits/epsilon
 	return (this->x<epsilon && this->x>-epsilon && this->y<epsilon && this->y>-epsilon && this->z<epsilon && this->z>-epsilon);
 }
 

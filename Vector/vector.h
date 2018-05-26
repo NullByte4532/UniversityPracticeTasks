@@ -20,6 +20,7 @@ class Vector {
 	public:
 		Vector(float x, float y, float z): x(x), y(y), z(z) {};
 		Vector();
+		// зачем писать this->x, если можно просто x?
 		float get_x() const { return this->x; }
 		float get_y() const { return this->y; }
 		float get_z() const { return this->z; }
